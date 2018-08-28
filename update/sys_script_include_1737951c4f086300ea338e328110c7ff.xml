@@ -41,13 +41,11 @@ function dummyOut() {
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-08-16 19:36:39</sys_created_on>
-        <sys_customer_update>true</sys_customer_update>
         <sys_id>1737951c4f086300ea338e328110c7ff</sys_id>
         <sys_mod_count>6</sys_mod_count>
         <sys_name>TestDummy</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
-        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1737951c4f086300ea338e328110c7ff</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
