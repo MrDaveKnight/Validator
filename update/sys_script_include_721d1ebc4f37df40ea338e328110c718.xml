@@ -62,7 +62,11 @@ trackedClasses = {
 trackedClasses["global.GSLog"] = 1; // The dot causes issues with static initialization
 
 Main.prototype = {
+	
+	
 	initialize: function(format, query, dump_tree) {
+		
+		this.startedAt = gs.hoursAgo(0);
 		
 		this.dumpTree = false;
 		this.FileCount = 0;
@@ -159,9 +163,36 @@ Main.prototype = {
 	
 	logStats: function () {
 		
+		
+		// Staging variables for database persistence.
+		// The datastore field labels match the labels that are printed out by gs.info below.
+		// Why? because it was easy for me to building the DB table. Live with it. 
+		// Keep it that way, and things will continue to work fine.
+		// If one of the datastore labels doesn't match one of the this.[...] variable names,
+		// create a temporary variable here that does, and we will set it before getting
+		// to the DB dump
+		var output = {
+			 ModifiedFileCount: 0,
+			 ModifiedMethodCount: 0,
+			 ScriptTestPercentage: 0.0,
+			 CodelessTestRatio: 0.0,
+			 CommentPercentage: 0.0,
+			 LogPercentage: 0.0,
+			 DebugPercentage: 0.0,
+			 ExceptionPercentage: 0.0,
+			 NumberOfScriptsTested: 0,
+			 NumberOfActiveScriptedTestSteps: 0,
+			 NumberOfActiveCodelessTestSteps: 0,
+			 fileCounts: {}
+		};
+		
 		if (this.CodeCharCount <= 0) {
 			return;
 		}
+		
+		//
+		// Human readable
+		//
 		
 		var targetedMethodCount = 0;
 		var testedMethodCount = 0;
@@ -179,27 +210,34 @@ Main.prototype = {
 		gs.info("");
 		gs.info("Risk Factors");
 		gs.info("--------------------------------------------------------------");
+		output.ModifiedFileCount = this.FileCount; // for DB load to come
 		gs.info("ModifiedFileCount: " + this.FileCount);
-		if (this.isMainLimitedToTargets)
+		if (this.isMainLimitedToTargets) {
 			gs.info("ModifiedMethodCount:" + targetedMethodCount);
+			output.ModifiedMethodCount = targetedMethodCount; // for DB load to come
+		}
 		gs.info("LinesOfCode:" + this.state.stats.LinesOfCode);
 		
 		gs.info("");
 		gs.info("Risk Mitigation Factors");
 		gs.info("--------------------------------------------------------------");
 		if (targetedMethodCount > 0) {
-			gs.info("ScriptTestPercentage: " + ((testedMethodCount / targetedMethodCount) * 100.0).toFixed(2) + "%"); 
+			output.ScriptTestPercentage = ((testedMethodCount / targetedMethodCount) * 100.0).toFixed(2);
+			gs.info("ScriptTestPercentage: " + output.ScriptTestPercentage + "%"); 
 		}
-		if (this.totalTestableFileCount > 0)
-			gs.info("CodelessTestRatio: " + (this.codelessAtfStepCount / this.totalTestableFileCount).toFixed(2)); 
-		gs.info("CommentPercentage: " + ((this.CommentCharCount / this.CodeCharCount) * 100.0).toFixed(2) + "%");
+		if (this.totalTestableFileCount > 0) {
+			output.CodelessTestRatio = (this.codelessAtfStepCount / this.totalTestableFileCount).toFixed(2);
+			gs.info("CodelessTestRatio: " + output.CodelessTestRatio); 
+		}
+		output.CommentPercentage = ((this.CommentCharCount / this.CodeCharCount) * 100.0).toFixed(2);
+		gs.info("CommentPercentage: " + output.CommentPercentage + "%");
 		if (this.state.stats.LinesOfCode > 0) {
-			gs.info("LogPercentage: " + 
-						((this.state.stats.LogCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2) + "%");
-			gs.info("DebugPercentage: " + 
-						((this.state.stats.DebugCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2) + "%");
-			gs.info("ExceptionPercentage: " + 
-						((this.state.stats.TryStatementCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2) + "%");
+			output.LogPercentage = ((this.state.stats.LogCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+			gs.info("LogPercentage: " + output.LogPercentage + "%");
+			output.DebugPercentage = ((this.state.stats.DebugCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+			gs.info("DebugPercentage: " + output.DebugPercentage + "%");
+			output.ExceptionPercentage = ((this.state.stats.TryStatementCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+			gs.info("ExceptionPercentage: " + output.ExceptionPercentage + "%");
 		}
 		else {
 			gs.info("No executable lines of code scanned. Nothing to report on log, debug and exception handling percentages.");
@@ -209,8 +247,11 @@ Main.prototype = {
 			gs.info("");
 			gs.info("Raw Test Data:");
 			gs.info("--------------------------------------------------------------");
+			output.NumberOfScriptsTested = testedMethodCount;
 			gs.info("NumberOfScriptsTested: " + testedMethodCount);
+			output.NumberOfActiveScriptedTestSteps = this.scriptedAtfStepCount;
 			gs.info("NumberOfActiveScriptedTestSteps: " + this.scriptedAtfStepCount);
+			output.NumberOfActiveCodelessTestSteps = this.codelessAtfStepCount;
 			gs.info("NumberOfActiveCodelessTestSteps: " + this.codelessAtfStepCount);
 		}
 		
@@ -231,9 +272,57 @@ Main.prototype = {
 				for (var s in this.state.targets.files[r]) {
 					i++;
 				}
+				output.fileCounts[r] = i; // For DB load
 				gs.info(r + ": " + i);
 			}
 		}
+		
+		//
+		// Dump to database
+		//
+		
+		if (gs.tableExists("x_snc_dk_valid_res_metrics")) {
+			// The Validator Results app is installed.
+			// Save our results to it.
+			
+			var store = new GlideRecord("x_snc_dk_valid_res_metrics");
+			var fields = new GlideRecord('sys_dictionary');
+			fields.addEncodedQuery("name=x_snc_dk_valid_res_metrics^elementNOT LIKEsys_^element!=transmitted^element!=started^element!=instance^element!=scan_duration^element!=number^internal_type!=collection");
+			fields.query();
+			while(fields.next())
+			{
+				
+				
+				// The labels of the fields in the table were configured to match
+				//	the variable names in here
+				if (output[fields.column_label]) {
+					store[fields.element] = output[fields.column_label];
+				}
+				else if (output.fileCounts[fields.column_label]) {
+					store[fields.element] = output.fileCounts[fields.column_label];
+				}
+				else if (this[fields.column_label]) {
+					store[fields.element] = this[fields.column_label];
+				}
+				else if (this.state.stats[fields.column_label]) {
+					store[fields.element] = this.state.stats[fields.column_label];
+				}
+				else if (this.state.targets.files[fields.column_label]) {
+					store[fields.element] = this.state.targets.files[fields.column_label];
+				}		
+			}	
+			store.instance = "https://" + gs.getProperty("instance_name") + ".service-now.com";
+			store.started = this.startedAt;
+			var endedAt = gs.hoursAgo(0);
+			
+			var durationMS = new GlideDateTime(endedAt).getNumericValue() - 
+				new GlideDateTime(this.startedAt).getNumericValue();
+			store.scan_duration = new GlideDuration(durationMS);
+			gs.info("Duration (min): " + durationMS / (1000 * 60));
+											   
+			
+			store.insert();
+		}	
 	},
 	
 	
@@ -1300,14 +1389,16 @@ function _fullObjectName(object) {
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
+        <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>205</sys_mod_count>
+        <sys_mod_count>217</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-09-04 12:19:29</sys_updated_on>
+        <sys_updated_on>2018-09-27 05:09:58</sys_updated_on>
     </sys_script_include>
 </record_update>
