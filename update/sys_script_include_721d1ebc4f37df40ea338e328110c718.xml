@@ -14,7 +14,7 @@
 Usage
 _______
 
-var validator = new x_snc_dk_validator.Main("update_set", "state=complete");
+var validator = new x_snc_dk_validator.Main("Scan description", "update_set", "state=complete");
 validator.scanScriptIncludes();
 validator.scanTestCoverage();
 validator.logStats();
@@ -64,10 +64,13 @@ trackedClasses["global.GSLog"] = 1; // The dot causes issues with static initial
 Main.prototype = {
 	
 	
-	initialize: function(format, query, dump_tree) {
+	initialize: function(desc, format, query, dump_tree) {
 		
 		this.startedAt = gs.hoursAgo(0);
 		
+		this.description = desc;
+		this.format = format;
+		this.query = query;
 		this.dumpTree = false;
 		this.FileCount = 0;
 		
@@ -319,8 +322,10 @@ Main.prototype = {
 				new GlideDateTime(this.startedAt).getNumericValue();
 			store.scan_duration = new GlideDuration(durationMS);
 			gs.info("Duration (min): " + durationMS / (1000 * 60));
+			store.description = this.description;
+			store.package_format = this.format;
+			store.package_query = this.query;
 											   
-			
 			store.insert();
 		}	
 	},
@@ -1391,7 +1396,7 @@ function _fullObjectName(object) {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>217</sys_mod_count>
+        <sys_mod_count>219</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -1399,6 +1404,6 @@ function _fullObjectName(object) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-09-27 05:09:58</sys_updated_on>
+        <sys_updated_on>2018-09-27 16:06:42</sys_updated_on>
     </sys_script_include>
 </record_update>
