@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<record_update table="sys_script_include">
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
     <sys_script_include action="INSERT_OR_UPDATE">
         <access>public</access>
         <active>true</active>
         <api_name>x_snc_dk_validator.Main</api_name>
+        <caller_access/>
         <client_callable>false</client_callable>
         <description/>
         <name>Main</name>
@@ -248,7 +248,7 @@ Main.prototype = {
 		
 		if (this.isMainLimitedToTargets) {
 			gs.info("");
-			gs.info("Raw Test Data:");
+			gs.info("Raw Test and Logging Data:");
 			gs.info("--------------------------------------------------------------");
 			output.NumberOfScriptsTested = testedMethodCount;
 			gs.info("NumberOfScriptsTested: " + testedMethodCount);
@@ -256,6 +256,8 @@ Main.prototype = {
 			gs.info("NumberOfActiveScriptedTestSteps: " + this.scriptedAtfStepCount);
 			output.NumberOfActiveCodelessTestSteps = this.codelessAtfStepCount;
 			gs.info("NumberOfActiveCodelessTestSteps: " + this.codelessAtfStepCount);
+			gs.info("LogCallCount: " + this.state.stats.LogCallCount);
+			gs.info("DebugCallCount: " + this.state.stats.DebugCallCount);
 		}
 		
 		gs.info("");
@@ -1396,7 +1398,7 @@ function _fullObjectName(object) {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>219</sys_mod_count>
+        <sys_mod_count>221</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -1404,6 +1406,6 @@ function _fullObjectName(object) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-09-27 16:06:42</sys_updated_on>
+        <sys_updated_on>2018-10-03 13:57:40</sys_updated_on>
     </sys_script_include>
 </record_update>

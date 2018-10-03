@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<record_update>
+<?xml version="1.0" encoding="UTF-8"?><record_update>
     <sys_ui_form_sections form_id="bf8e9ddd4fb31380ea338e328110c75c" sys_domain="global" table="atf_input_variable" version="3">
         <sys_ui_form_section action="INSERT_OR_UPDATE">
             <position>0</position>
