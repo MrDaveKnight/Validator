@@ -92,7 +92,8 @@ Main.prototype = {
 		// Same holds for everything else, like the targets
 		this.state = {
 			stats: {
-				LinesOfCode: 0,
+				ScriptSize: 0, // The number of nodes in the script's syntax tree
+				LinesOfCode: 0,  // Javascript statements, variable declarations, assignment expressions and function calls
 				DebugCallCount: 0,
 				LogCallCount: 0,
 				GlobalLogCallCount: 0,
@@ -220,6 +221,7 @@ Main.prototype = {
 			output.ModifiedMethodCount = targetedMethodCount; // for DB load to come
 		}
 		gs.info("LinesOfCode:" + this.state.stats.LinesOfCode);
+		gs.info("ScriptSize:" + this.state.stats.ScriptSize);
 		
 		gs.info("");
 		gs.info("Risk Mitigation Factors");
@@ -788,6 +790,7 @@ function statementHandler (node, state, ancestors) {
 function functionDeclarationHandler (node, state, ancestors) {
 	
 	state.stats[node.type + "Count"]++;
+	state.stats.LinesOfCode++;
 	
 	if (state.function_depth > 0) {
 		// We only want to track function at the scope level, which are accessable 
@@ -886,6 +889,7 @@ function variableDeclaratorHandler (node, state, ancestors) {
 function memberExpressionHandler (node, state, ancestors) {
 	// This callback locates the prototype and identifies the Script Includes Class.
 	try {
+		//state.stats.LinesOfCode++;
 		if (node.property.type == "Identifier" &&
 			node.property.name == "prototype") {
 		
@@ -905,6 +909,7 @@ function memberExpressionHandler (node, state, ancestors) {
 function assignmentExpressionHandler (node, state, ancestors) {
 	try {
 		
+		state.stats.LinesOfCode++;
 		var detectedClass = 0;
 		if (node.type == "AssignmentExpression" &&
 			node.operator == "=") {
@@ -930,6 +935,7 @@ function assignmentExpressionHandler (node, state, ancestors) {
 function callExpressionHandler (node, state, ancestors) {
 	
 	try {
+		state.stats.LinesOfCode++;
 		if (node.callee.type == "MemberExpression" && node.callee.property.type == "Identifier") {
 			
 			if (node.callee.object.type == "Identifier") {
@@ -965,6 +971,7 @@ function functionExpressionHandler (node, state, ancestors) {
 	state.stats[node.type + "Count"]++;
 	
 	try {
+		state.stats.LinesOfCode++;
 		var methodName = 0; // fully qualifed function property being called, i.e scope.Class[.Property].function
 		
 		var parent = ancestors[ancestors.length - 2]; // DAK
@@ -1398,7 +1405,7 @@ function _fullObjectName(object) {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>221</sys_mod_count>
+        <sys_mod_count>226</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -1406,6 +1413,6 @@ function _fullObjectName(object) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-03 13:57:40</sys_updated_on>
+        <sys_updated_on>2018-10-03 16:02:25</sys_updated_on>
     </sys_script_include>
 </record_update>
