@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dk_validator.Cat</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Application file Categorization defintions and logic</description>
+        <name>Cat</name>
+        <script><![CDATA[var Cat = Class.create();
+
+Cat.isNoLowLogicRecord = function(tableName) {
+
+	var retVal = false;
+
+	// General Logic Record Switch
+	switch (tableName) {
+		case "sys_script": // "Business Rule"
+		case "sysevent_script_action": // "Script Action"
+		case "sysauto": // "Scheduled Job"
+		case "sc_cat_item_producer": // "Record Producer"
+		case "sys_filter_option_dynamic": // "Dynamic Filter Options":
+		case "sys_script_email": // "Notification"
+		case "sysevent_in_email_action": // "Inbound Email Actions"
+		case "sysrule_assignment": // "Assignment Rule" (exclusively no code)
+		case "sys_relationship": // (Dynamic) "Relationship"
+		case "wf_activity": // "Workflow"
+		case "sys_security_acl": // "Access Control"
+		case "dl_matcher": // "Data Lookup"
+		case "sys_data_policy_rule": // "Data Policy"
+		case "sys_ui_action": // "UI Action" (server and client side)
+		case "sys_ui_policy_action": // "UI Policy"
+		case "catalog_ui_policy_action": // "Catalog UI Policy"
+		case "expert_ui_policy_action": // "Wizard UI Policy"
+		case "sys_script_client": // "Client Script"
+		case "catalog_script_client": // "Catalog Client Script"
+		case "expert_script_client": // Wizard Client Script
+
+		case "wf_activity": // "Workflow Activity" 
+		case "sys_hub_action_instance": // "Flow Designer" or "Integration Hub"
+		case "dl_definition_rel_match": // "Data Lookup Matcher"
+		case "dl_definition_rel_set": // "Data Lookup Setter"
+			retVal = true;
+			break;
+
+		default:
+			break;
+	}
+
+	return retVal;
+};
+
+Cat.isProLogicRecord = function(tableName) {
+
+	var retVal = false;
+
+	// Advanced Logic Record Switch
+	switch (tableName) {
+
+		case "sys_script_include": // "Script Include"
+		case "metric_definition	": // "Metric"
+		case "sys_transform_script": // "Transform Script"
+		case "sys_script_fix": // "Fix Script"
+		case "sys_processor": // "Processor":
+		case "sys_ui_macro": // "UI Macro"
+		case "sys_ui_page": // "UI Page"
+		case "sys_ui_script": // "UI Script"
+		case "sys_script_fix": // "Fix Script":
+
+		// Integration
+		case "sys_rest_message": // "REST Message"
+		case "sys_ws_definition": // "Scripted REST API"
+		case "sys_soap_message": // "SOAP Message"
+		case "sys_web_service": // "Web Services" (scripted)
+
+		// "Discovery"
+		case "discovery_sensor":
+		case "discovery_port_probe":
+		case "discovery_probes":
+		case "discovery_probes_cim":
+		case "discovery_probes_snmp":
+		case "discovery_probes_wmi":
+		case "discovery_sensor_probe":
+
+		// Service Portal
+		case "sp_page": // "Service Portal Page" 
+		case "sp_widget": // "Service Portal Widget" 
+		case "sp_css": // "Service Portal CSS"
+
+		// Old CMS
+		case "content_block":
+		case "content_block_detail":
+		case "content_block_flash":
+		case "content_block_header":
+		case "content_block_iframe":
+		case "content_block_lists":
+		case "content_block_menu":
+		case "content_block_programmatic":
+		case "content_block_sized":
+		case "content_block_static":
+		case "content_css": // Style Sheet
+			retVal = true;
+			break;
+
+		default:
+			// Log all "Config Records"
+			break;
+	}
+	return retVal;
+};
+
+Cat.isIntegrationLogicRecord = function(tableName) {
+	// In isProLogicRecord
+
+	var retVal = false;
+
+	// Integration (also Advanced) Logic Record Switch
+	switch (tableName) {
+
+		case "sys_rest_message": // "REST Message"
+		case "sys_ws_definition": // "Scripted REST API"
+		case "sys_soap_message": // "SOAP Message"
+		case "sys_web_service": // "Web Services" (scripted)
+			retVal = true;
+			break;
+
+		default:
+			// Log all "Config Records"
+			break;
+	}
+	return retVal;
+};
+
+Cat.isPortalLogicRecord = function(tableName) {
+	// In isProLogicRecord
+
+	var retVal = false;
+
+	// Portal (also Advanced) Logic Switch
+	switch (tableName) {
+
+		case "sp_page": // "Service Portal Page" 
+		case "sp_widget": // "Service Portal Widget" 
+		case "sp_css": // "Service Portal CSS"
+			retVal = true;
+			break;
+
+		default:
+			break;
+
+	}
+	return retVal;
+};
+
+
+Cat.isDiscoveryLogicRecord = function(tableName) {
+	// In isProLogicRecord
+
+	var retVal = false;
+
+	// Discovery (also Advanced) Logic Switch
+	switch (tableName) {
+
+		case "discovery_sensor": // "Discovery Sensor":
+		// "Discovery Probes"
+		case "discovery_port_probe":
+		case "discovery_probes":
+		case "discovery_probes_cim":
+		case "discovery_probes_snmp":
+		case "discovery_probes_wmi":
+		case "discovery_sensor_probe":
+			retVal = true;
+			break;
+
+		default:
+			break;
+
+	}
+	return retVal;
+};
+
+Cat.isGraphicalLogicRecord = function(tableName) {
+	// In isNoLowLogicRecord 
+
+	var retVal = false;
+
+	// Declarative (also General) Logic Switch
+	switch (tableName) {
+
+		case "wf_activity": // "Workflow Activity" 
+		case "sys_hub_action_instance": // "Flow Designer" or "Integration Hub"
+			retVal = true;
+			break;
+
+		default:
+			break;
+
+	}
+	return retVal;
+};
+
+
+Cat.isSchemaConfigRecord = function(tableName) {
+
+	var retVal = false;
+
+	// Schema Configuration Switch
+	switch (tableName) {
+
+		case "sys_dictionary_override": // "Dictionary Entry Override":
+		case "sys_dictionary": // "Dictionary":
+			retVal = true;
+			break;
+
+		default:
+			break;
+
+	}
+	return retVal;
+};
+
+
+Cat.isTestRecord = function(tableName) {
+
+	var retVal = false;
+
+	// ATF Switch
+	switch (tableName) {
+
+		// ATF tests
+		case "sys_atf_step": // "Test Step":
+		case "sys_atf_test": // "Test":
+			retVal = true;
+			break;
+
+		default:
+			// Log all "Config Records"
+			break;
+	}
+	return retVal;
+};
+
+Cat.isGlobal = function(record) {
+
+	// Assumes record is an ancenstor of sys_metadata
+	var record_scope = record.getValue("sys_scope");
+	return !record_scope || record_scope == "global";
+};
+
+
+Cat.prototype = {
+    initialize: function() {
+    },
+
+    type: 'Cat'
+};
+
+]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>dave.knight</sys_created_by>
+        <sys_created_on>2018-10-11 14:33:43</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>5269e0d24fcd6b00ea338e328110c709</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>Cat</sys_name>
+        <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
+        <sys_update_name>sys_script_include_5269e0d24fcd6b00ea338e328110c709</sys_update_name>
+        <sys_updated_by>dave.knight</sys_updated_by>
+        <sys_updated_on>2018-10-14 03:18:29</sys_updated_on>
+    </sys_script_include>
+</record_update>

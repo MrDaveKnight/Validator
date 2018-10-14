@@ -1,0 +1,4996 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dk_validator.Spider</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>Spider</name>
+        <script><![CDATA[var Spider = Class.create();
+Spider.prototype = {
+    initialize: function() {
+    },
+
+    type: 'Spider'
+};
+
+Spider.appFiles = {
+"diagrammer_action":{
+    "label ":"DiagrammerActions",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"wf_action":{
+    "label ":"WorkflowActions",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"bsm_action":{
+    "label ":"BSMMapActions",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"sn_bm_common_indicator_category":{
+    "label ":"BenchmarkIndicatorCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_app_shortcut_item":{
+    "label ":"MobileAppShortcutItem",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ws_header_map":{
+    "label ":"ScriptedRESTHeaderAssociation",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ws_version":{
+    "label ":"ScriptedRESTVersion",
+    "has_script":"false",
+    "name_field":"version_id",
+    "script_fields":{}},
+"sys_cb_goal":{
+    "label ":"TopicGoal",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "scripted_applicability":"script_plain",
+        "scripted_confirmation":"script_plain",
+        "scripted_greeting":"script_plain"}},
+"cxs_filter_mapping":{
+    "label ":"TableFilterMappingConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_encryption_context":{
+    "label ":"EncryptionContext",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"vmware_folder_type":{
+    "label ":"VmwareFolderType",
+    "has_script":"false",
+    "name_field":"foldertype",
+    "script_fields":{}},
+"dl_definition":{
+    "label ":"DataLookupDefinitions",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"catalog_dl_definition":{
+    "label ":"CatalogDataLookupDefinitions",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ordered_item_link":{
+    "label ":"OrderedItemLink",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_reference_style":{
+    "label ":"ReferenceStyle",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"announcement":{
+    "label ":"Announcement",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"expert_panel_transition":{
+    "label ":"WizardPanelTransition",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "transition_script":"script_plain"}},
+"sc_cat_item_children":{
+    "label ":"Child",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_scripts":{
+    "label ":"Script",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"m2m_sp_dependency_js_include":{
+    "label ":"DependencyJSIncludes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_widget":{
+    "label ":"Widget",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "client_script":"script",
+        "link":"script",
+        "script":"script"}},
+"sp_header_footer":{
+    "label ":"Header|Footer",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "client_script":"script",
+        "link":"script",
+        "script":"script"}},
+"sys_scope_design_access":{
+    "label ":"DesignAccess",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_option":{
+    "label ":"ItemOption",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_script":{
+    "label ":"BusinessRule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sys_alias":{
+    "label ":"Connection&CredentialAliases",
+    "has_script":"false",
+    "name_field":"id",
+    "script_fields":{}},
+"sys_number":{
+    "label ":"Number",
+    "has_script":"false",
+    "name_field":"prefix",
+    "script_fields":{}},
+"sysrule":{
+    "label ":"Rule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sysevent_email_action":{
+    "label ":"Notification",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "advanced_condition":"script",
+        "digest_html":"html_script",
+        "digest_separator_html":"html_script",
+        "digest_separator_text":"email_script",
+        "digest_text":"email_script",
+        "message":"email_script",
+        "message_html":"html_script",
+        "message_text":"email_script",
+        "sms_alternate":"email_script"}},
+"content_page_rule":{
+    "label ":"LoginRule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "advanced_condition":"script_plain"}},
+"sysrule_assignment":{
+    "label ":"AssignmentRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sysrule_approvals":{
+    "label ":"ApprovalRules",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sysrule_quota_app":{
+    "label ":"ApplicationQuotaRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sysevent_script_action":{
+    "label ":"ScriptAction",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sysevent_in_email_action":{
+    "label ":"InboundEmailActions",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sysrule_view":{
+    "label ":"ViewRule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sysrule_escalate":{
+    "label ":"ServiceLevelAgreement",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "advanced_condition":"script",
+        "assignment_script":"script"}},
+"sysrule_escalate_am":{
+    "label ":"InactivityMonitor",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "advanced_condition":"script",
+        "assignment_script":"script"}},
+"sysrule_quota":{
+    "label ":"TransactionQuotaRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sales_lead_assignment_rule":{
+    "label ":"SalesAssignmentRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sysevent_email_style":{
+    "label ":"Stationery",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"azure_datasource_type_mapping":{
+    "label ":"AzureDatasourcetypemapping",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"resource_type_definition":{
+    "label ":"CostTypeDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_container":{
+    "label ":"Container",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"process_guide":{
+    "label ":"ProcessGuides",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "advanced_condition":"script"}},
+"sys_email_layout":{
+    "label ":"EmailLayout",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_provider_disksize_selection":{
+    "label ":"CatalogVMDataDiskSizeSelection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ecc_agent_sync_file":{
+    "label ":"MIDServerSynchronizedFile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_mib":{
+    "label ":"MIDServerMIBFile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_script_file":{
+    "label ":"MIDServerScriptFile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_jar":{
+    "label ":"MIDServerJARFile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_ext_jar":{
+    "label ":"MIDServerExtensionJARFile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"comm_task_definition":{
+    "label ":"CommunicationTaskDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_managed_sources":{
+    "label ":"ManagedSource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_job_indicators":{
+    "label ":"JobIndicator",
+    "has_script":"false",
+    "name_field":"display",
+    "script_fields":{}},
+"sys_ui_list_control":{
+    "label ":"ListControl",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "columns_condition":"script_plain",
+        "edit_condition":"script_plain",
+        "empty_condition":"script_plain",
+        "filter_condition":"script_plain",
+        "link_condition":"script_plain",
+        "new_condition":"script_plain"}},
+"sys_cb_design_topic":{
+    "label ":"TopicDesign",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_scope_privilege":{
+    "label ":"Crossscopeprivilege",
+    "has_script":"false",
+    "name_field":"target_name",
+    "script_fields":{}},
+"sc_cat_item_group_mtom":{
+    "label ":"AvailableforGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_health_metric_pref":{
+    "label ":"CMDBHealthMetricPreference",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_list_control_embedded":{
+    "label ":"EmbeddedListControl",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "columns_condition":"script_plain",
+        "empty_condition":"script_plain",
+        "link_condition":"script_plain",
+        "new_condition":"script_plain"}},
+"pwd_map_proc_to_cred_store":{
+    "label ":"PasswordResetProcessCredentialStore",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pm_home_page_card":{
+    "label ":"PmHomePageCard",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_notification_category":{
+    "label ":"NotificationCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_map_proc_to_verification":{
+    "label ":"PasswordResetProcessVerification",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_indicator_breakdowns":{
+    "label ":"IndicatorBreakdown",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_rel_filter":{
+    "label ":"CIRelationFilter",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_web_service_input":{
+    "label ":"InputParameter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"automation_error_category":{
+    "label ":"AutomationErrorCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_identification_type":{
+    "label ":"PasswordResetIdentificationType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sf_state_flow":{
+    "label ":"StateFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"sn_customerservice_sf_case":{
+    "label ":"CustomerServiceCaseFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"sf_sm_flow":{
+    "label ":"ServiceManagementFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"sf_sm_task":{
+    "label ":"ServiceTaskFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script",
+        "auto_script_script":"script",
+        "ui_action_script":"script"}},
+"sf_work_order":{
+    "label ":"WorkOrderFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"sf_sm_order":{
+    "label ":"ServiceOrderFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script",
+        "auto_script_script":"script",
+        "ui_action_script":"script"}},
+"x_snc_dd_hack_lab_sf_task":{
+    "label ":"DDHackLabTaskFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"sf_work_task":{
+    "label ":"WorkTaskFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"x_snc_dd_hack_lab_sf_request":{
+    "label ":"DDHackLabRequestFlow",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "automatic_script":"script",
+        "manual_script":"script"}},
+"cloud_mgmt_region":{
+    "label ":"CloudMgmtRegion",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"azure_region":{
+    "label ":"AzureRegion",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_css_include":{
+    "label ":"CSSInclude",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_suggestion_rule":{
+    "label ":"IndexSuggestionRule",
+    "has_script":"true",
+    "name_field":"rule_name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"pa_target_values":{
+    "label ":"Targetvalue",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"asmt_metric":{
+    "label ":"AssessmentMetric",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sc_ic_task_assign_defn_staging":{
+    "label ":"TaskAssignment",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "assignment_script":"script_plain"}},
+"chg_soc_definition_core":{
+    "label ":"ChangeScheduleDefinitionCore",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_definition":{
+    "label ":"ChangeScheduleDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_definition_child":{
+    "label ":"RelatedDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"item_option_new_set":{
+    "label ":"VariableSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_managed_sources_indicators":{
+    "label ":"ManagedSourceIndicators",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"baseline_config":{
+    "label ":"BaselineConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sn_bm_common_size_bucket":{
+    "label ":"CustomerSizeBucket",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"discovery_behavior":{
+    "label ":"DiscoveryBehavior",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_documentation":{
+    "label ":"ServicePortalDocumentation",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"sn_hr_core_coe":{
+    "label ":"COE",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_ic_aprvl_defn":{
+    "label ":"ApprovalDefinition",
+    "has_script":"false",
+    "name_field":"type",
+    "script_fields":{}},
+"question":{
+    "label ":"Question",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"item_option_new":{
+    "label ":"Variable",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"wf_variable":{
+    "label ":"WorkflowSCVariable",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_cat_variable":{
+    "label ":"Flowcatalogvariable",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_variable":{
+    "label ":"WizardVariable",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"survey_question_new":{
+    "label ":"SurveyQuestion",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"item_option_layout":{
+    "label ":"VariableLayout",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cool_thing":{
+    "label ":"CoolThing",
+    "has_script":"false",
+    "name_field":"number",
+    "script_fields":{}},
+"cmdb_health_scorecard_group_threshold":{
+    "label ":"CMDBHealthGroupScorecardThreshold",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_range":{
+    "label ":"DiscoveryRangeSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"clm_condition_check":{
+    "label ":"ConditionChecks",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_dashboards":{
+    "label ":"Dashboard",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_schedule_range":{
+    "label ":"DiscoveryScheduleRange",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"db_audio":{
+    "label ":"Audio",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_filter_config":{
+    "label ":"TableFilterConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "filter_script":"script_plain"}},
+"sys_script_ajax":{
+    "label ":"AJAXScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"cmn_notif_service_provider":{
+    "label ":"NotificationServiceProvider",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_panel_c_item":{
+    "label ":"OrderableItems",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"m2m_sp_widget_dependency":{
+    "label ":"WidgetDependency",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_probes_snmp_field":{
+    "label ":"SNMPField",
+    "has_script":"false",
+    "name_field":"oid",
+    "script_fields":{}},
+"sys_atf_test_suite":{
+    "label ":"TestSuite",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_text_index_configurations":{
+    "label ":"PerformanceAnalyticsTextIndexConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_breakdown_mappings":{
+    "label ":"BreakdownMapping",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cxs_context_config":{
+    "label ":"SearchContext",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_buckets":{
+    "label ":"Bucket",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_row":{
+    "label ":"Row",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_holiday":{
+    "label ":"Holiday",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_dependency":{
+    "label ":"WidgetDependency",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_template":{
+    "label ":"Template",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"std_change_template":{
+    "label ":"StandardChangeTemplateValue",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sn_hr_core_template":{
+    "label ":"HRTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_auth_profile":{
+    "label ":"AuthenticationConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_auth_profile_basic":{
+    "label ":"BasicAuthConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_auth_profile_oauth2":{
+    "label ":"OAuth2Configuration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_rest_message_fn_headers":{
+    "label ":"HTTPHeaders",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_mobile_layout_cats_mtom":{
+    "label ":"MobileLayoutCategories",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_embedded_help_role":{
+    "label ":"EmbeddedHelpRolePriority",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_bucket_groups":{
+    "label ":"Bucketgroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_tabs":{
+    "label ":"Tab",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_overview_help":{
+    "label ":"OverviewHelpPage",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"sys_state_model":{
+    "label ":"StateModel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_datasource":{
+    "label ":"RoundRobinDataSource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pwd_process":{
+    "label ":"PasswordResetProcess",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_category_company_mtom":{
+    "label ":"AvailableforCompanies",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ldap_server_url":{
+    "label ":"LDAPServerURL",
+    "has_script":"false",
+    "name_field":"url",
+    "script_fields":{}},
+"sys_cal_span":{
+    "label ":"SysCalSpan",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"gsw_status_of_content":{
+    "label ":"GuidedSetupContentStatus",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_location_no_mtom":{
+    "label ":"NotAvailableatLocations",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_collection":{
+    "label ":"MobileHomePageCollection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_application":{
+    "label ":"ApplicationMenu",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pm_console_table":{
+    "label ":"PlanningConsoleTable",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"connect_action":{
+    "label ":"ConnectAction",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"vm_instance_action":{
+    "label ":"VmInstanceAction",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_test_suite_test":{
+    "label ":"TestSuiteTest",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"metric_definition":{
+    "label ":"MetricDefinition",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sys_archive_destroy":{
+    "label ":"ArchiveDestroyRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_dimensions_acl":{
+    "label ":"ElementsSecurityList",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"interaction_queue":{
+    "label ":"InteractionQueue",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_user_role":{
+    "label ":"Role",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"discovery_classy":{
+    "label ":"Classification",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"discovery_classy_windows":{
+    "label ":"WindowsClassification",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_atf_test":{
+    "label ":"Test",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_aprvl_defn_staging":{
+    "label ":"Approval",
+    "has_script":"false",
+    "name_field":"type",
+    "script_fields":{}},
+"sys_rest_message_fn_parameters":{
+    "label ":"VariableSubstitutions",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_app_application":{
+    "label ":"ApplicationMenu",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_script_param":{
+    "label ":"MIDServerScriptparameter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_user_role_contains":{
+    "label ":"ContainedRole",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_security_acl":{
+    "label ":"AccessControl",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"u_email_triggers":{
+    "label ":"EmailTriggers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_guide_items":{
+    "label ":"Rule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_datasource_precedence":{
+    "label ":"DataSourcePrecedence",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_data_source":{
+    "label ":"DataSource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"gsw_content":{
+    "label ":"GuidedSetupContent",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"gsw_content_information":{
+    "label ":"GuidedSetupInformation",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"gsw_content_group":{
+    "label ":"GuidedSetupGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cxs_fltr_config":{
+    "label ":"FilterConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "filter_script":"script_plain"}},
+"cxs_rp_fltr_config":{
+    "label ":"FilterConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "filter_script":"script_plain"}},
+"cxs_table_fltr_config":{
+    "label ":"FilterConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "filter_script":"script_plain"}},
+"discovery_sensor_yield":{
+    "label ":"Sensorsthatrequireyieldonlargepayload",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_bm_common_indicator_group":{
+    "label ":"BenchmarkIndicatorGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"svc_extension":{
+    "label ":"DeploymentExtensionContainer",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_indicators":{
+    "label ":"Indicator",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_dt_ext_mtom":{
+    "label ":"ExternalDependencies",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_home_page":{
+    "label ":"MobileHomePage",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_health_staleness_rule":{
+    "label ":"CMDBHealthStalenessRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_renderer":{
+    "label ":"CatalogRenderer",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_catalog_page_renderer":{
+    "label ":"HomepageCatalogRenderer",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_homepage_renderer":{
+    "label ":"HomepageCategoryRenderer",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_transform_map":{
+    "label ":"TableTransformMap",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"vm_snapshot_config":{
+    "label ":"VMSnapshotConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_properties_category":{
+    "label ":"SystemPropertyCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"csm_field_map":{
+    "label ":"CsmFieldMap",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "transform_script":"script"}},
+"sys_hub_flow_logic_definition":{
+    "label ":"LogicDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_section":{
+    "label ":"Section",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_page_title_variable":{
+    "label ":"Dynamicpagetitlevariables",
+    "has_script":"false",
+    "name_field":"variable",
+    "script_fields":{}},
+"request_parent_mapping":{
+    "label ":"RequestParentMapping",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ws_definition":{
+    "label ":"ScriptedRESTAPI",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_navigator":{
+    "label ":"NavigationHandler",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"pm_console_dependencies":{
+    "label ":"PlanningConsoleDependency",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ws_security_profiles_outbound":{
+    "label ":"WS-SecurityProfiles(Outbound)",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ws_security_username_profile_outbound":{
+    "label ":"WS-SecurityUsernameProfiles(Outbound)",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ws_security_x509_profile_outbound":{
+    "label ":"WS-SecurityX.509Profiles(Outbound)",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_reconciliation_definition":{
+    "label ":"ReconciliationDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pm_console_display_column":{
+    "label ":"PlanningConsoleDisplayColumn",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_angular_provider":{
+    "label ":"WidgetAngularProvider",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sc_cat_dt_app_user":{
+    "label ":"ApprovingUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_topic":{
+    "label ":"Topic",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_table_field_config":{
+    "label ":"SearchField",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_soap_message_parameters":{
+    "label ":"VariableSubstitutions",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_m2m":{
+    "label ":"ManytoManyDefinition",
+    "has_script":"false",
+    "name_field":"m2m_table",
+    "script_fields":{}},
+"sys_report_mpivot_rule":{
+    "label ":"MultilevelPivotRule",
+    "has_script":"false",
+    "name_field":"operator",
+    "script_fields":{}},
+"sys_gauge_counts":{
+    "label ":"CountGauges",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"m2m_sp_theme_css_include":{
+    "label ":"Stylesheets",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_question":{
+    "label ":"PasswordResetQuestion",
+    "has_script":"false",
+    "name_field":"question",
+    "script_fields":{}},
+"sc_cat_item_company_mtom":{
+    "label ":"AvailableforCompanies",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"dl_definition_rel_set":{
+    "label ":"SetterFieldDefinitions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"catalog_dl_definition_rel_set":{
+    "label ":"CatalogSetterVariableDefinitions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_category_dept_mtom":{
+    "label ":"AvailableforDepartments",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_app_category":{
+    "label ":"MenuCategory",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"discovery_probes":{
+    "label ":"Probe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"discovery_probes_snmp":{
+    "label ":"SNMPProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"discovery_probes_multi":{
+    "label ":"MultiProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"automation_pipeline":{
+    "label ":"CommandPipeline",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"discovery_azure_probe":{
+    "label ":"AzureProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"discovery_probes_cim":{
+    "label ":"CIMProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"discovery_probes_wmi":{
+    "label ":"WMIProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "post_processor_script":"script_plain",
+        "script":"script_plain"}},
+"cmdb_dedup_default_rel_item":{
+    "label ":"CMDBDuplicateRemediatorDefaultRelatedItems",
+    "has_script":"false",
+    "name_field":"whitelist_entry",
+    "script_fields":{}},
+"ldap_server_config":{
+    "label ":"LDAPServer",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_question_type_choice":{
+    "label ":"QuestionTypeChoice",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_embedded_help_content":{
+    "label ":"EmbeddedHelp",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_schedule_page":{
+    "label ":"SchedulePage",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "client_script":"script_plain",
+        "server_script":"script_plain"}},
+"sc_layout_column_mtom":{
+    "label ":"LayoutColumn",
+    "has_script":"false",
+    "name_field":"checkbox_name",
+    "script_fields":{}},
+"asmt_decision_matrix":{
+    "label ":"DecisionMatrix",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_task_defn_staging":{
+    "label ":"Task",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_hp_cascading_filter_target_references":{
+    "label ":"TargetTables",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_hub_step_instance":{
+    "label ":"StepInstance",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"sc_ic_question":{
+    "label ":"Question",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_graph_set":{
+    "label ":"RoundRobinGraphSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_push_notif_act_script":{
+    "label ":"PushNotificationAction",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sys_push_notif_msg_attr_val":{
+    "label ":"PushMessageAttributeValue",
+    "has_script":"false",
+    "name_field":"value",
+    "script_fields":{}},
+"sys_impex_entry":{
+    "label ":"FieldMap",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sn_bm_common_optout_feedback_options":{
+    "label ":"OptOutFeedbackOption",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_rest_message_fn":{
+    "label ":"HTTPMethod",
+    "has_script":"false",
+    "name_field":"function_name",
+    "script_fields":{}},
+"sn_appcreator_app_template":{
+    "label ":"AppTemplate",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"process_step":{
+    "label ":"ProcessSteps",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"process_step_approval":{
+    "label ":"ApprovalSteps",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "approval_script":"script_plain",
+        "approver_script":"script_plain",
+        "rejection_script":"script_plain"}},
+"suggestion_error_code_m2m":{
+    "label ":"Mappingbetweensuggestionanderrorcode",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_style_rule_core":{
+    "label ":"StyleRuleCore",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_style_rule":{
+    "label ":"StyleRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_definition_style_rule":{
+    "label ":"StyleRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"chg_soc_def_child_style_rule":{
+    "label ":"StyleRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"oauth_entity_profile_scope":{
+    "label ":"OauthEntityProfileScope",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_processor":{
+    "label ":"Processor",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"attachment_extractor":{
+    "label ":"AttachmentExtractor",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"credential_type_metadata":{
+    "label ":"CredentialTypeMetadata",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_view_instance":{
+    "label ":"CMDBViewInstance",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_category_user_no_mtom":{
+    "label ":"NotAvailableforUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_translated":{
+    "label ":"TranslatedName/Field",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"dmn_stage_config":{
+    "label ":"DemandStageConfig",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_user_mtom":{
+    "label ":"AvailableforUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_rel_type":{
+    "label ":"CIRelationshipType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report_users_groups":{
+    "label ":"ReportUsersandGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_push_notif_app_install":{
+    "label ":"PushNotificationInstallation",
+    "has_script":"false",
+    "name_field":"token",
+    "script_fields":{}},
+"sc_cat_item_catalog":{
+    "label ":"CatalogItemsCatalog",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_config":{
+    "label ":"ContentConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"task_rel_type":{
+    "label ":"TaskRelationshipType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ws_query_parameter":{
+    "label ":"ScriptedRESTQueryParameter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_step_env":{
+    "label ":"TestStepEnvironment",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_aprvl_type_defn_staging":{
+    "label ":"ApprovalType",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "approver_script":"script_plain"}},
+"cmn_schedule":{
+    "label ":"Schedule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_vm_schedule":{
+    "label ":"VirtualServerSchedule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_schedule_condition":{
+    "label ":"ConditionSchedule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_schedule_blackout":{
+    "label ":"BlackoutSchedule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_schedule_maintenance":{
+    "label ":"MaintenanceSchedule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"mtg_definition":{
+    "label ":"MeetingDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cab_definition":{
+    "label ":"CABDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"x_snc_dk_ion1_cab_definition":{
+    "label ":"Ion1CABDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_widget_elements":{
+    "label ":"WidgetElement",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"asmt_metric_definition":{
+    "label ":"AssessmentMetricDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_transform_entry":{
+    "label ":"FieldMap",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "source_script":"script_plain"}},
+"sys_report_render_generator":{
+    "label ":"ReportRenderer",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"oauth_entity_profile":{
+    "label ":"OauthEntityProfile",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report_olap":{
+    "label ":"OLAPCubeView",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"round_robin_graph_set_member":{
+    "label ":"Member",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_action":{
+    "label ":"UIAction",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "client_script_v2":"script",
+        "script":"script"}},
+"sm_config_module":{
+    "label ":"SmConfigModule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"expert_panel":{
+    "label ":"WizardPanel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_panel_template":{
+    "label ":"RecordGenerator",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"expert_panel_catalog_order":{
+    "label ":"CatalogOrder",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_panel_catalog_checkout":{
+    "label ":"CatalogCheckoutPanel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_panel_knowledge":{
+    "label ":"KBViewer",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"expert_panel_redirect":{
+    "label ":"RedirectPanel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_category_company_no_mtom":{
+    "label ":"NotAvailableforCompanies",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sysrule_escalate_interval":{
+    "label ":"EscalationInterval",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_vlist_action":{
+    "label ":"ListAction",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"m2m_sp_widget_script_include":{
+    "label ":"WidgetScriptInclude",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_hub_trigger_instance":{
+    "label ":"ProcessFlowTriggerStage",
+    "has_script":"false",
+    "name_field":"display_text",
+    "script_fields":{}},
+"sc_ic_column":{
+    "label ":"Column",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"mid_selector_override":{
+    "label ":"MidSelectorOverride",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"io_set_delivery_plan":{
+    "label ":"CatalogVariableSet",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"kb_navons":{
+    "label ":"KnowledgeNav-ons",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"workbench_config":{
+    "label ":"WorkbenchConfiguration",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "phase_actions":"script"}},
+"workbench_config_user":{
+    "label ":"PersonalizeWorkbench",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "phase_actions":"script"}},
+"sn_hr_core_document_type":{
+    "label ":"HRDocumentType",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"automation_error_suggestion":{
+    "label ":"AutomationErrorSuggestion",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"rep$orch_jms_ds":{
+    "label ":"Rep$orchJmsDs",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ws_query_parameter_map":{
+    "label ":"ScriptedRESTQueryParameterAssociation",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_probe_parameter":{
+    "label ":"Probeparameter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"project_time_category":{
+    "label ":"ProjectTimeCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"wf_stage_default":{
+    "label ":"StageDefault",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_datasource_staleness":{
+    "label ":"DataSourceStalenessDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_cat_item":{
+    "label ":"CatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cmp_cat_item":{
+    "label ":"CloudManagementProviderCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cat_item_guide":{
+    "label ":"Orderguide",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain",
+        "script":"script_plain",
+        "validator":"script_plain"}},
+"sc_vp_cat_item":{
+    "label ":"VirtualProvisioningCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_vm_cat_item":{
+    "label ":"VMCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_azure_vm_cat_item":{
+    "label ":"AzureVMCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_azure_template_cat_item":{
+    "label ":"AzureTemplateCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sn_azure_vm_template_cat_item":{
+    "label ":"AzureSimpleVMTemplateCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cloud_rsrc_cat_item":{
+    "label ":"CloudProvisioningCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cat_item_content":{
+    "label ":"ContentItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"pc_product_cat_item":{
+    "label ":"ProductCatalogItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"pc_hardware_cat_item":{
+    "label ":"HardwareCatalog",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"pc_software_cat_item":{
+    "label ":"SoftwareCatalog",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cat_item_wizard":{
+    "label ":"WizardLauncher",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain"}},
+"sc_cat_item_producer":{
+    "label ":"RecordProducer",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain",
+        "post_insert_script":"script_plain",
+        "script":"script_plain"}},
+"sc_cat_item_producer_service":{
+    "label ":"Service",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain",
+        "post_insert_script":"script_plain",
+        "script":"script_plain"}},
+"std_change_record_producer":{
+    "label ":"StandardChangeTemplate",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "delivery_plan_script":"script_plain",
+        "entitlement_script":"script_plain",
+        "post_insert_script":"script_plain",
+        "script":"script_plain"}},
+"sys_script_client":{
+    "label ":"ClientScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"catalog_script_client":{
+    "label ":"CatalogClientScripts",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"expert_script_client":{
+    "label ":"WizardClientScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"content_css":{
+    "label ":"StyleSheet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pwd_cred_store_param":{
+    "label ":"PasswordResetCredentialStoreParameters",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"io_set_item":{
+    "label ":"CatalogVariableSet",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"comm_plan_definition":{
+    "label ":"CommunicationPlanDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_grid_canvas":{
+    "label ":"GridCanvas",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_skill":{
+    "label ":"Skill",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_list":{
+    "label ":"List",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sysevent_email_template":{
+    "label ":"EmailTemplate",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "message":"email_script",
+        "message_html":"html_script",
+        "message_text":"email_script",
+        "sms_alternate":"email_script"}},
+"risk_conditions":{
+    "label ":"RiskConditions",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "advanced_condition":"script"}},
+"contact_responsibility":{
+    "label ":"ContactResponsibility",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pm_console":{
+    "label ":"PlanningConsole",
+    "has_script":"false",
+    "name_field":"entity",
+    "script_fields":{}},
+"gsw_change_log":{
+    "label ":"GuidedSetupChangeLog",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"matching_dimension_for_assignment":{
+    "label ":"SelectCriterion",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_notif_subscription":{
+    "label ":"NotificationSubscription",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"db_video":{
+    "label ":"Video",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_search_res_config_prop":{
+    "label ":"SearchResourceProperty",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_push_notif_msg":{
+    "label ":"PushNotificationMessage",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"provisioning_rule_assignment_m2m":{
+    "label ":"ProvisioningRuleAssignmentM2m",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ts_table":{
+    "label ":"TextSearchTable",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_metadata_link":{
+    "label ":"MetadataSnapshot",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cb_topic":{
+    "label ":"Topic",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_graph_line":{
+    "label ":"GraphLine",
+    "has_script":"false",
+    "name_field":"aggregator",
+    "script_fields":{}},
+"sys_relationship":{
+    "label ":"Relationship",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "apply_to":"script_plain",
+        "insert_callback":"script_plain",
+        "query_from":"script_plain",
+        "query_with":"script_plain"}},
+"sys_report_range":{
+    "label ":"Range",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"web_service_launcher_lookup":{
+    "label ":"WebServiceLauncherLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"task_action_workflow":{
+    "label ":"TaskActionWorkflow",
+    "has_script":"false",
+    "name_field":"action",
+    "script_fields":{}},
+"virtualization_provider":{
+    "label ":"VirtualizationProvider",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_queue_config":{
+    "label ":"Configuration",
+    "has_script":"false",
+    "name_field":"external_name",
+    "script_fields":{}},
+"sys_embedded_tour_step":{
+    "label ":"GuidedTourStep",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"vm_size":{
+    "label ":"VMSizeDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"azure_vm_size":{
+    "label ":"AzureVMSize",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_m2m_home_page_section":{
+    "label ":"HomePageSection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_schema_attribute":{
+    "label ":"DictionaryAttribute",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"sys_properties":{
+    "label ":"SystemProperty",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_policy":{
+    "label ":"UIPolicy",
+    "has_script":"true",
+    "name_field":"short_description",
+    "script_fields":{
+        "script_false":"script_plain",
+        "script_true":"script_plain"}},
+"wf_ui_policy":{
+    "label ":"WorkflowUIPolicy",
+    "has_script":"true",
+    "name_field":"short_description",
+    "script_fields":{
+        "script_false":"script_plain",
+        "script_true":"script_plain"}},
+"expert_ui_policy":{
+    "label ":"WizardUIPolicy",
+    "has_script":"true",
+    "name_field":"short_description",
+    "script_fields":{
+        "script_false":"script_plain",
+        "script_true":"script_plain"}},
+"catalog_ui_policy":{
+    "label ":"CatalogUIPolicy",
+    "has_script":"true",
+    "name_field":"short_description",
+    "script_fields":{
+        "script_false":"script_plain",
+        "script_true":"script_plain"}},
+"sys_soap_message":{
+    "label ":"SOAPMessage",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_question_choice":{
+    "label ":"QuestionChoice",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_app_user":{
+    "label ":"ApprovingUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_sensor_probe":{
+    "label ":"ProbesTriggeredbySensor",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_sensor_probe_conditional":{
+    "label ":"Conditionalprobestriggeredbysensor",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition_script":"script_plain"}},
+"bsm_related_item":{
+    "label ":"BsmRelatedItem",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"map_view_ci_type":{
+    "label ":"MapViewConfigurationTypes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_style":{
+    "label ":"Style",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_module":{
+    "label ":"Module",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_policy_rl_action":{
+    "label ":"UIPolicyRelatedListAction",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"contract_sla":{
+    "label ":"SLADefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_cat_item_company_no_mtom":{
+    "label ":"NotAvailableforCompanies",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_theme":{
+    "label ":"ContentTheme",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_data_policy_rule":{
+    "label ":"DataPolicyRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_flow_subflow_plan":{
+    "label ":"SubFlowPlan",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_m2m_indicator_notifications":{
+    "label ":"NotificationIndicator",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_email_client_template":{
+    "label ":"EmailClientTemplate",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "body_html":"html_script"}},
+"cxs_rp_filter_config":{
+    "label ":"RecordProducerFilterConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "filter_script":"script_plain"}},
+"sp_metatag":{
+    "label ":"MetaTag",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"azure_web_service":{
+    "label ":"AzureWebService",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"service_reg_query_slp_service_type":{
+    "label ":"ServiceType",
+    "has_script":"false",
+    "name_field":"service_type",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_section":{
+    "label ":"MobileHomePageSection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pm_app_config":{
+    "label ":"TeamSpace",
+    "has_script":"false",
+    "name_field":"app_name",
+    "script_fields":{}},
+"asmt_template_definition":{
+    "label ":"AssessmentTemplateDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"asmt_nps_definition":{
+    "label ":"AssessmentNPSDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"jrobin_archive":{
+    "label ":"RoundRobinArchive",
+    "has_script":"false",
+    "name_field":"aggregator",
+    "script_fields":{}},
+"jrobin_graph_set_member":{
+    "label ":"Member",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cxs_ui_action":{
+    "label ":"SearchActions",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_export_set":{
+    "label ":"ExportSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sla_condition_class":{
+    "label ":"SLAConditions",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_cubes":{
+    "label ":"IndicatorSource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_action_view":{
+    "label ":"UIViewAction",
+    "has_script":"false",
+    "name_field":"visibility",
+    "script_fields":{}},
+"ldap_ou_config":{
+    "label ":"LDAPOUDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_relative_duration":{
+    "label ":"RelativeDuration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sc_layout_column_nd_mtom":{
+    "label ":"Non-DoctypeLayoutColumn",
+    "has_script":"false",
+    "name_field":"checkbox_name",
+    "script_fields":{}},
+"map_view_rel_type":{
+    "label ":"MapViewRelationshipTypes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_virtual_agent_context":{
+    "label ":"VirtualAgentContext",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "value":"script"}},
+"bubble_chart_workbench":{
+    "label ":"BubbleWorkbench",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"content_block":{
+    "label ":"ContentBlock",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_detail":{
+    "label ":"DetailedContent",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"content_block_header":{
+    "label ":"Header",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_programmatic":{
+    "label ":"DynamicContent",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_menu":{
+    "label ":"NavigationMenu",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_lists":{
+    "label ":"ListofContent",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"content_block_static":{
+    "label ":"StaticContent",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_sized":{
+    "label ":"SizedContent",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_flash":{
+    "label ":"FlashMovie",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"content_block_iframe":{
+    "label ":"IFrames",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sys_ui_script":{
+    "label ":"UIScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_atf_whitelist":{
+    "label ":"WhitelistedClientError",
+    "has_script":"false",
+    "name_field":"error_message",
+    "script_fields":{}},
+"sys_job":{
+    "label ":"SysJob",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_step_definition":{
+    "label ":"ActionStepDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_thresholds":{
+    "label ":"Threshold",
+    "has_script":"false",
+    "name_field":"display",
+    "script_fields":{}},
+"sc_ic_task_defn":{
+    "label ":"TaskDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"matching_rule":{
+    "label ":"MatchingRule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"dynamic_schedule_task_filter":{
+    "label ":"TaskFilter",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sc_cat_item_delivery_plan":{
+    "label ":"ExecutionPlan",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_m2m_dashboard_sources":{
+    "label ":"DashboardBreakdownSource",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"announcement_style":{
+    "label ":"AnnouncementStyle",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_page":{
+    "label ":"Page",
+    "has_script":"false",
+    "name_field":"id",
+    "script_fields":{}},
+"sys_resolutionshaper_config":{
+    "label ":"ResolutionShaperConfig",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"expert":{
+    "label ":"Wizard",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_cred_store":{
+    "label ":"PasswordResetCredentialStore",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "pwd_rule":"script",
+        "strength_rule":"script"}},
+"cmdb_categories":{
+    "label ":"CMDBCategories",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_configuration":{
+    "label ":"ConversationServerConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_ic_question_type":{
+    "label ":"QuestionType",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_hub_flow_block":{
+    "label ":"FlowBlock",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_flow_base":{
+    "label ":"FlowBase",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_flow":{
+    "label ":"Flow",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_flow_snapshot":{
+    "label ":"Flow",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"asmt_metric_type":{
+    "label ":"AssessmentMetricType",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_view":{
+    "label ":"UIView",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_perspective":{
+    "label ":"MenuList",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_app_module":{
+    "label ":"Module",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_theme":{
+    "label ":"MobileTheme",
+    "has_script":"false",
+    "name_field":"navigation_bar_title",
+    "script_fields":{}},
+"roadmap_page":{
+    "label ":"TimelineVisualization",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"roadmap_user_page":{
+    "label ":"PersonalizeTimeline",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"activitydef_scriptfile":{
+    "label ":"ActivityDefinitiontoMIDServerScriptFile",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_bm_client_recommendation_indicator_m2m":{
+    "label ":"RecommendationIndicatorM2M",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"interaction_connector":{
+    "label ":"InteractionConnector",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "on_abandoned":"script",
+        "on_assigned":"script",
+        "on_closed":"script",
+        "on_created":"script",
+        "on_queued":"script",
+        "on_transferred":"script"}},
+"cxs_search_resource":{
+    "label ":"AvailableSearchResource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"oauth_entity_scope":{
+    "label ":"OauthEntityScope",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"asmt_template":{
+    "label ":"AssessmentMetricTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"asmt_nps_template":{
+    "label ":"AssessmentNPSTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_extension_point":{
+    "label ":"ExtensionPoint",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "example":"script"}},
+"sys_db_view_table_field":{
+    "label ":"ViewField",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_filter_option_dynamic":{
+    "label ":"DynamicFilterOptions",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"pa_indicator_aggregate_excl":{
+    "label ":"Indicatortimeseriesexclusion",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"question_choice":{
+    "label ":"QuestionChoice",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_section":{
+    "label ":"FormSection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_customerservice_escalation_severity":{
+    "label ":"EscalationSeverity",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"discovery_class_criteria":{
+    "label ":"ClassificationCriteria",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_listener_detail":{
+    "label ":"SysListenerDetail",
+    "has_script":"true",
+    "name_field":"classname",
+    "script_fields":{
+        "script":"script_plain"}},
+"pa_chart_color_schemes":{
+    "label ":"Chartcolorscheme",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"rb_category_m2m":{
+    "label ":"OrchestrationCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_flow_cat_variable_model":{
+    "label ":"Flowcatalogvariablemodel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"syntax_editor_macro":{
+    "label ":"EditorMacro",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_layout_ui_macro_nd_mtom":{
+    "label ":"Non-DoctypeWidget/ViewMacros",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pm_console_column_advanced":{
+    "label ":"PlanningConsoleColumnAdvanced",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_export_definition":{
+    "label ":"ExportDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"svc_extension_definition":{
+    "label ":"DeploymentExtensionDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"map_filters":{
+    "label ":"CIFilters",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cors_rule":{
+    "label ":"CORSRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_dimensions":{
+    "label ":"BreakdownSource",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ecc_agent_capability_value_test":{
+    "label ":"MIDServerCapabilityValueTest",
+    "has_script":"true",
+    "name_field":"capability",
+    "script_fields":{
+        "script":"script"}},
+"sys_flow_trigger":{
+    "label ":"Trigger",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_record_trigger":{
+    "label ":"RecordTrigger",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_timer_trigger":{
+    "label ":"TimerTrigger",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_rest_trigger":{
+    "label ":"RESTTrigger",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_flow_catalog_trigger":{
+    "label ":"CatalogTrigger",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_step_config":{
+    "label ":"TestStepConfig",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "description_generator":"script_plain",
+        "step_execution_generator":"script_plain"}},
+"cxs_res_context_config":{
+    "label ":"ResourceConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"task_rel_kb_type":{
+    "label ":"Knowledge/TaskRelationship",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"remediation_rule":{
+    "label ":"CMDBRemediationRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_home":{
+    "label ":"WelcomePageSection",
+    "has_script":"false",
+    "name_field":"short_description",
+    "script_fields":{}},
+"expert_banner_step":{
+    "label ":"BannerStep",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_instance":{
+    "label ":"Instance",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"sp_instance_carousel":{
+    "label ":"InstanceofCarousel",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"sp_instance_link":{
+    "label ":"InstancewithLink",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"sp_instance_table":{
+    "label ":"InstancewithTable",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"sp_instance_vlist":{
+    "label ":"InstanceofSimpleList",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"sp_instance_menu":{
+    "label ":"InstancewithMenu",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "widget_parameters":"script_server"}},
+"jrobin_datasource":{
+    "label ":"RoundRobinDataSource",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"dscy_invalid_serial":{
+    "label ":"InvalidSerialNumber",
+    "has_script":"false",
+    "name_field":"serial",
+    "script_fields":{}},
+"map_view":{
+    "label ":"PredefinedFilters",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_action_type_base":{
+    "label ":"ActionTypeBase",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_action_type_snapshot":{
+    "label ":"ActionTypeSnapshot",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_hub_action_type_definition":{
+    "label ":"ActionType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"content_type":{
+    "label ":"ContentType",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"asmt_m2m_xcategory_matrix":{
+    "label ":"AssessmentXCategoryMatrix",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_report_import_table_users_groups_roles":{
+    "label ":"ImportTableUsersandGroupsandRoles",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"clone_data_preserver":{
+    "label ":"CloneDataPreserver",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_category_group_mtom":{
+    "label ":"AvailableforGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_health_orphan_rule":{
+    "label ":"CMDBHealthOrphanRule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_probes_multi_probe":{
+    "label ":"MultiProbeIncludedProbe",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_column":{
+    "label ":"Column",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_site":{
+    "label ":"Site",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_consumer_channel":{
+    "label ":"ConsumerChannel",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_ic_question_class":{
+    "label ":"QuestionClass",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_documentation":{
+    "label ":"FieldLabel",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"pa_manual_breakdowns":{
+    "label ":"ManualBreakdown",
+    "has_script":"false",
+    "name_field":"value",
+    "script_fields":{}},
+"sys_push_notif_msg_content":{
+    "label ":"PushNotificationMessageContent",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sys_ui_action_role":{
+    "label ":"UIActionRole",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"rb_mid_server_m2m":{
+    "label ":"OrchestrationMIDServerConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_bm_common_indicator":{
+    "label ":"BenchmarkIndicator",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_amb_processor":{
+    "label ":"AMBMessageProcessor",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "channel_create_advanced_authorization":"script",
+        "channel_subscribe_advanced_authorization":"script",
+        "message_receive_advanced_authorization":"script",
+        "message_receive_listener":"script",
+        "message_send_advanced_authorization":"script",
+        "message_send_listener":"script",
+        "user_subscribe_listener":"script",
+        "user_unsubscribe_listener":"script"}},
+"sys_ui_help":{
+    "label ":"SystemHelp",
+    "has_script":"false",
+    "name_field":"path",
+    "script_fields":{}},
+"email_access_restriction":{
+    "label ":"EmailAccessRestriction",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_dept_mtom":{
+    "label ":"AvailableforDepartments",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"planned_task_recalculation_exclusions":{
+    "label ":"PlannedTaskRecalculationExclusions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"automation_error_code":{
+    "label ":"AutomationErrorCode",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sysauto":{
+    "label ":"ScheduledJob",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_indicator_notifications":{
+    "label ":"ScheduledEmailSummary",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_pa":{
+    "label ":"ScheduledDataCollection",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_script":{
+    "label ":"ScheduledScriptExecution",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sys_broadcast_message":{
+    "label ":"BroadcastMessage",
+    "has_script":"true",
+    "name_field":"message",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sys_flow_trigger_auto_script":{
+    "label ":"TriggerExecution",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sys_api_stats_script":{
+    "label ":"APIStatsScheduledScriptExecution",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"cert_schedule":{
+    "label ":"CertificationSchedule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sys_atf_schedule":{
+    "label ":"SuiteSchedule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"discovery_schedule":{
+    "label ":"DiscoverySchedule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"cert_audit":{
+    "label ":"Audit",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"cert_instance":{
+    "label ":"CertificationInstance",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sysauto_bm_script":{
+    "label ":"BenchmarkScheduledScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"wf_workflow_schedule":{
+    "label ":"WorkflowSchedule",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"vm_snapshot_schedule_job":{
+    "label ":"VMSnapshotScheduledJobs",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"azure_scheduled_script":{
+    "label ":"AzureScheduledScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"sysauto_summary_generator":{
+    "label ":"ScheduledReportSummaryGeneration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "script":"script_plain"}},
+"scheduled_data_export":{
+    "label ":"ScheduledDataExport",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "post_script":"script",
+        "pre_script":"script"}},
+"sysauto_query_builder":{
+    "label ":"ScheduledEmailofQueryBuilder",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_indicator":{
+    "label ":"ScheduledIndicator",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_custom_chart":{
+    "label ":"ScheduledEmailofCustomChart",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_internal_timer":{
+    "label ":"InternalTimers",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sys_cs_timer_event":{
+    "label ":"ConversationTimerEvent",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"scheduled_data_import":{
+    "label ":"ScheduledDataImport",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "post_script":"script",
+        "pre_script":"script"}},
+"scheduled_import_set":{
+    "label ":"ScheduledDataImport",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain",
+        "post_script":"script",
+        "pre_script":"script"}},
+"sysauto_report":{
+    "label ":"ScheduledEmailofReport",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"sysauto_template":{
+    "label ":"ScheduledEntityGeneration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition":"script_plain"}},
+"jrobin_definition":{
+    "label ":"RoundRobinDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pwd_extension_type":{
+    "label ":"PasswordResetExtensionType",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "template":"script"}},
+"sp_search_facet_filter":{
+    "label ":"MappedFacetFilter",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_category_user_mtom":{
+    "label ":"AvailableforUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_script_validator":{
+    "label ":"ValidationScript",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "validator":"script_plain"}},
+"sys_wizard":{
+    "label ":"Interceptor",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"m2m_announcement_portal":{
+    "label ":"PortalAnnouncements",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmn_timeline_page_style":{
+    "label ":"TimelinePageSpanStyle",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"contact_default_override":{
+    "label ":"Defaultoverride",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_indicator_breakdown_excl":{
+    "label ":"Breakdownmatrixexclusions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_title":{
+    "label ":"DocumentTitle",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"bsm_indicator":{
+    "label ":"MapIndicator",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_development_permission":{
+    "label ":"DevelopmentPermission",
+    "has_script":"false",
+    "name_field":"resource_path",
+    "script_fields":{}},
+"cmdb_rel_user_type":{
+    "label ":"CI/UserRelationshipType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_ng_template":{
+    "label ":"Angularng-template",
+    "has_script":"false",
+    "name_field":"id",
+    "script_fields":{}},
+"sys_script_include":{
+    "label ":"ScriptInclude",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"live_table_notification":{
+    "label ":"LiveTableNotification",
+    "has_script":"true",
+    "name_field":"description",
+    "script_fields":{
+        "before_script":"script",
+        "message":"email_script"}},
+"sn_customerservice_escalation_template":{
+    "label ":"EscalationTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_cat_item_user_no_mtom":{
+    "label ":"NotAvailableforUsers",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_soap_message_function":{
+    "label ":"SOAPMessageFunction",
+    "has_script":"false",
+    "name_field":"function_name",
+    "script_fields":{}},
+"sc_category_group_no_mtom":{
+    "label ":"NotAvailableforGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_breakdown_relations":{
+    "label ":"BreakdownRelation",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_scoped_admin_acl_inheritance":{
+    "label ":"ApplicationAdministrationACLInheritance",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_security_operation":{
+    "label ":"Operation",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_development_permission_set":{
+    "label ":"DevelopmentPermissionSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sn_app_cs_social_social_channel":{
+    "label ":"SocialChannel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_theme":{
+    "label ":"Theme",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_related_list":{
+    "label ":"RelatedList",
+    "has_script":"false",
+    "name_field":"calculated_name",
+    "script_fields":{}},
+"content_theme_css":{
+    "label ":"ContentThemeCSS",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_m2m_dashboard_tabs":{
+    "label ":"DashboardTab",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_hp_reference":{
+    "label ":"InteractiveFilterReference",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_ic_task_assign_defn":{
+    "label ":"TaskAssignmentDefinition",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "assignment_script":"script_plain"}},
+"sys_web_service_output":{
+    "label ":"OutputParameter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_state_transition":{
+    "label ":"StateTransition",
+    "has_script":"false",
+    "name_field":"state_label",
+    "script_fields":{}},
+"sys_hub_flow_stage":{
+    "label ":"FlowStages",
+    "has_script":"false",
+    "name_field":"label",
+    "script_fields":{}},
+"ecc_agent_application":{
+    "label ":"MIDServerApplication",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_rel_rollup":{
+    "label ":"CIRelationshipRollup",
+    "has_script":"false",
+    "name_field":"type",
+    "script_fields":{}},
+"expert_panel_variable":{
+    "label ":"WizardPanelVariable",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_properties_category_m2m":{
+    "label ":"CategoryProperty",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_hp_date":{
+    "label ":"InteractiveFilterDate",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_ic_item_staging":{
+    "label ":"Item",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_archive":{
+    "label ":"ArchiveRule",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"clone_data_exclude":{
+    "label ":"CloneExcludeTable",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"wf_workflow":{
+    "label ":"Workflow",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"m2m_sp_theme_js_include":{
+    "label ":"JSIncludes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_embedded_help_qualifier":{
+    "label ":"EmbeddedHelpQualifier",
+    "has_script":"false",
+    "name_field":"path",
+    "script_fields":{}},
+"clm_condition_checker":{
+    "label ":"Condition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ts_group":{
+    "label ":"TextSearchGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"rb_category":{
+    "label ":"OrchestrationCategory",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_filtered_message":{
+    "label ":"FilteredMessage",
+    "has_script":"false",
+    "name_field":"message",
+    "script_fields":{}},
+"sn_hr_core_coe_config_matching":{
+    "label ":"COEConfigurationMatching",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"planned_task_custom_console_widget":{
+    "label ":"Portalboardwidget",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sn_bm_client_recommendation":{
+    "label ":"Recommendation",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"automation_source_application":{
+    "label ":"AutomationSourceApplication",
+    "has_script":"false",
+    "name_field":"application",
+    "script_fields":{}},
+"comm_task_type_lookup":{
+    "label ":"CommunicationTaskTypeLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"comm_task_handler":{
+    "label ":"CommunicationTaskHandler",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_push_feedback":{
+    "label ":"PushFeedback",
+    "has_script":"false",
+    "name_field":"token",
+    "script_fields":{}},
+"asmt_bubble_chart":{
+    "label ":"BubbleChart",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_process_flow":{
+    "label ":"FlowFormatter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_list_script_server":{
+    "label ":"ListServerScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sc_cat_item_dt_mtom":{
+    "label ":"PlanSequencing",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_dashboards_group":{
+    "label ":"DashboardGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_auto_flush":{
+    "label ":"AutoFlush",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_email_canned_message":{
+    "label ":"EmailClientCannedMessages",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"dl_definition_rel_match":{
+    "label ":"MatcherFieldDefinitions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"catalog_dl_definition_rel_mat":{
+    "label ":"CatalogMatcherVariableDefinitions",
+    "has_script":"false",
+    "name_field":"source_catalog_variable",
+    "script_fields":{}},
+"sn_hr_core_service_activity":{
+    "label ":"ServiceActivity",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ngbsm_related_item":{
+    "label ":"RelatedItem",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_widgets":{
+    "label ":"Widgets",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_widget_indicators":{
+    "label ":"WidgetIndicator",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_verification_param":{
+    "label ":"PasswordResetVerificationParam",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_dictionary_override":{
+    "label ":"DictionaryEntryOverride",
+    "has_script":"false",
+    "name_field":"element",
+    "script_fields":{}},
+"sys_extension_instance":{
+    "label ":"ExtensionInstance",
+    "has_script":"false",
+    "name_field":"point",
+    "script_fields":{}},
+"jrobin_graph_set":{
+    "label ":"RoundRobinGraphSet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_graph":{
+    "label ":"RoundRobinGraph",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"asmt_m2m_ycategory_matrix":{
+    "label ":"AssessmentYCategoryMatrix",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_dept_no_mtom":{
+    "label ":"NotAvailableforDepartments",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_hub_flow_component":{
+    "label ":"Component",
+    "has_script":"false",
+    "name_field":"display_text",
+    "script_fields":{}},
+"sys_hub_flow_logic":{
+    "label ":"FlowLogicInstance",
+    "has_script":"false",
+    "name_field":"display_text",
+    "script_fields":{}},
+"sys_hub_action_instance":{
+    "label ":"ActionInstance",
+    "has_script":"false",
+    "name_field":"order",
+    "script_fields":{}},
+"sys_hub_sub_flow_instance":{
+    "label ":"SubFlowinstance",
+    "has_script":"false",
+    "name_field":"display_text",
+    "script_fields":{}},
+"sc_category_location_mtom":{
+    "label ":"AvailableatLocations",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_range_item":{
+    "label ":"DiscoveryIPRange",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_health_scorecard_threshold":{
+    "label ":"CMDBHealthScorecardThreshold",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"vm_extension_point":{
+    "label ":"VmExtensionPoint",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"cmdb_rel_group_type":{
+    "label ":"CI/GroupRelationshipType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"item_option_category":{
+    "label ":"VariableCategory",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_db_view_table":{
+    "label ":"ViewTable",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cxs_search_res_config":{
+    "label ":"SearchResource",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "grsr_script":"script_plain"}},
+"comm_channel_definition":{
+    "label ":"CommunicationChannelDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"comm_channel_def_email":{
+    "label ":"CommunicationChannelDefinition-Email",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_metadata_delete":{
+    "label ":"DeletedApplicationFile",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_job_indicator_breakdown_ex":{
+    "label ":"JobIndicatorBreakdownexclusions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_filters":{
+    "label ":"ElementsFilter",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"m2m_sp_dependency_css_include":{
+    "label ":"DependencyCSSIncludes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"rate_type":{
+    "label ":"RateType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report_color":{
+    "label ":"ColorDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"ecc_agent_capability":{
+    "label ":"MIDServerCapability",
+    "has_script":"false",
+    "name_field":"capability_value",
+    "script_fields":{}},
+"sys_gauge":{
+    "label ":"Gauge",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_catalog":{
+    "label ":"Catalog",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"asmt_condition":{
+    "label ":"TriggerCondition",
+    "has_script":"false",
+    "name_field":"description",
+    "script_fields":{}},
+"sys_ui_hp_publisher":{
+    "label ":"InteractiveFilter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_test_template":{
+    "label ":"TestTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_rest_message_fn_param_defs":{
+    "label ":"HTTPQueryParameters",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_m2m_indicator_tags":{
+    "label ":"IndicatorGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ecc_agent_script":{
+    "label ":"MIDServerScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sp_metatag_variable":{
+    "label ":"Contentvariable",
+    "has_script":"false",
+    "name_field":"variable",
+    "script_fields":{}},
+"cloud_rel_type_mapping":{
+    "label ":"CloudRelationshipTypeMapping",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_installation_exit":{
+    "label ":"InstallationExit",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"rep$jdbc_connection":{
+    "label ":"Rep$jdbcConnection",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report_source":{
+    "label ":"ReportSource",
+    "has_script":"false",
+    "name_field":"display",
+    "script_fields":{}},
+"cmdb_view":{
+    "label ":"CMDBView",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"announcement_consumer_type":{
+    "label ":"AnnouncementConsumerType",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"contact_definition":{
+    "label ":"ContactDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_category":{
+    "label ":"Category",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "entitlement_script":"script_plain"}},
+"sc_category_top_n":{
+    "label ":"Dynamiccategory",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "entitlement_script":"script_plain"}},
+"sp_rectangle_menu_item":{
+    "label ":"MenuItem",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "record_script":"script_server"}},
+"sys_rest_message":{
+    "label ":"RESTMessage",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_archive_related":{
+    "label ":"ArchiveRelatedRecords",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_ic_aprvl_type_defn":{
+    "label ":"ApprovalTypeDefinition",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "approver_script":"script_plain"}},
+"sys_push_application":{
+    "label ":"PushApplication",
+    "has_script":"false",
+    "name_field":"display_name",
+    "script_fields":{}},
+"sys_widgets":{
+    "label ":"Widget",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_ui_message":{
+    "label ":"Message",
+    "has_script":"false",
+    "name_field":"key",
+    "script_fields":{}},
+"sys_scope_table_access":{
+    "label ":"ScopeTableAccess",
+    "has_script":"false",
+    "name_field":"table_name",
+    "script_fields":{}},
+"wf_element_definition":{
+    "label ":"WorkflowElementDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"wf_activity_definition":{
+    "label ":"WorkflowActivityDefinition",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"wf_element_activity":{
+    "label ":"ActivityDesigner",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "input_process_script":"script",
+        "output_process_script":"script",
+        "processing_script":"script"}},
+"normalizedobject_db_mapping":{
+    "label ":"NormalizedObjecttoDBMapping",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"m2m_sp_ng_pro_sp_ng_pro":{
+    "label ":"AngularProviders2",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_layout_ui_macro_mtom":{
+    "label ":"Widget/ViewMacros",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ws_header":{
+    "label ":"ScriptedRESTHeader",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ws_operation":{
+    "label ":"ScriptedRESTResource",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "operation_script":"script"}},
+"notification_condition":{
+    "label ":"NotificationCondition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_dictionary":{
+    "label ":"DictionaryEntry",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "calculation":"script"}},
+"var_dictionary":{
+    "label ":"Variables",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "calculation":"script"}},
+"sys_glide_object":{
+    "label ":"Fieldclass",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_targets":{
+    "label ":"Target",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_aggregates":{
+    "label ":"Timeseries",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"vm_instance_change_condition":{
+    "label ":"VmInstanceChangeCondition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_nav_link":{
+    "label ":"NavigationLink",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "text_script":"script",
+        "url_script":"script"}},
+"pm_home_page_config":{
+    "label ":"PMHomePageConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_carousel_slide":{
+    "label ":"CarouselSlide",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cs_vendor_client_adapter_configuration":{
+    "label ":"SysCsVendorClientAdapterConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_script_email":{
+    "label ":"EmailScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"matching_dimension":{
+    "label ":"MatchingCriterion",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"sys_atf_step":{
+    "label ":"TestStep",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_app_group":{
+    "label ":"ApprovingGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_item_variable_assignment":{
+    "label ":"ItemVariableAssignment",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_report_page_hdrftr":{
+    "label ":"PDFPageHeaderFooterTemplate",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sp_css":{
+    "label ":"StyleSheet",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cb_node":{
+    "label ":"GoalNode",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cb_collector":{
+    "label ":"ThreadCollector",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cb_action":{
+    "label ":"GoalAction",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_cb_prompt":{
+    "label ":"Prompt",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "nlp_script":"script_plain"}},
+"sys_cb_decision":{
+    "label ":"Decision",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_cb_outcome":{
+    "label ":"DecisionOutcome",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"planned_task_rollup":{
+    "label ":"PlannedTaskRollup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_index":{
+    "label ":"Indexes",
+    "has_script":"false",
+    "name_field":"logical_table_name",
+    "script_fields":{}},
+"sc_cat_item_location_mtom":{
+    "label ":"AvailableatLocations",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_db_object":{
+    "label ":"Table",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_class_user_preference":{
+    "label ":"CMDBClassUserPreference",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"clone_cleanup_script":{
+    "label ":"CloneCleanupScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"cxs_ui_config_base":{
+    "label ":"BaseUIConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_wizard_config":{
+    "label ":"WizardConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_table_config":{
+    "label ":"TableConfiguration",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "search_as_script":"script_plain"}},
+"cxs_rp_config":{
+    "label ":"RecordProducerConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sm_config":{
+    "label ":"SMConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_script_fix":{
+    "label ":"FixScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"ups_alarm":{
+    "label ":"UPSAlarm",
+    "has_script":"false",
+    "name_field":"description",
+    "script_fields":{}},
+"sp_js_include":{
+    "label ":"JSInclude",
+    "has_script":"false",
+    "name_field":"display_name",
+    "script_fields":{}},
+"notification_filter":{
+    "label ":"NotificationFilter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_fltr_condition":{
+    "label ":"FilterCondition",
+    "has_script":"false",
+    "name_field":"short_description",
+    "script_fields":{}},
+"cxs_rp_fltr_condition":{
+    "label ":"FilterCondition",
+    "has_script":"false",
+    "name_field":"short_description",
+    "script_fields":{}},
+"cxs_table_fltr_condition":{
+    "label ":"FilterCondition",
+    "has_script":"false",
+    "name_field":"short_description",
+    "script_fields":{}},
+"user_criteria":{
+    "label ":"UserCriteria",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"vm_snapshot_eviction_policy":{
+    "label ":"VmSnapshotEvictionPolicy",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_mailbox":{
+    "label ":"Mailboxes",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_definition":{
+    "label ":"RoundRobinDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_page":{
+    "label ":"UIPage",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "client_script":"script_plain",
+        "processing_script":"script_plain"}},
+"sys_report_chart_color":{
+    "label ":"ChartColors",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cxs_res_context_config_prop":{
+    "label ":"SearchResourceContextProperty",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmdb_recommended_fields":{
+    "label ":"CMDBRecommendedField",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_hub_category":{
+    "label ":"ActionCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_layout":{
+    "label ":"CartLayout",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_module":{
+    "label ":"MobileHomePageModule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_theme":{
+    "label ":"Theme",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_export_target":{
+    "label ":"ExportTarget",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_category_location_no_mtom":{
+    "label ":"NotAvailableforLocations",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_embed_object":{
+    "label ":"EmbedObject",
+    "has_script":"false",
+    "name_field":"extension",
+    "script_fields":{}},
+"pwd_verification":{
+    "label ":"PasswordResetVerification",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_security_type":{
+    "label ":"Type",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report":{
+    "label ":"Report",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"sys_report_drill":{
+    "label ":"ReportDrillown",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"cxs_searcher_config":{
+    "label ":"Searcher",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_catalog_view_mtom":{
+    "label ":"CatalogPortalPage",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_ng_action":{
+    "label ":"UIAction-Mobile",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"sys_data_policy2":{
+    "label ":"DataPolicy",
+    "has_script":"false",
+    "name_field":"short_description",
+    "script_fields":{}},
+"sc_category_dept_no_mtom":{
+    "label ":"NotAvailableforDepartments",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_units":{
+    "label ":"Unit",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_rate_limit_rules":{
+    "label ":"RateLimitRules",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"service_reg_query":{
+    "label ":"ServiceRegistryQuery",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"service_reg_query_slp":{
+    "label ":"SLPQuery",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"survey_conditions":{
+    "label ":"SurveyConditions",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_web_service":{
+    "label ":"WebService",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_ordering_definition":{
+    "label ":"RankingDefinition",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"jrobin_graph_line":{
+    "label ":"GraphLine",
+    "has_script":"false",
+    "name_field":"aggregator",
+    "script_fields":{}},
+"cloud_resource_type":{
+    "label ":"ResourceType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"azure_resource_type":{
+    "label ":"AzureResourceType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_schedule_run":{
+    "label ":"ScheduledSuiteRun",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_restricted_caller_access":{
+    "label ":"RestrictedCallerAccessPrivilege",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sysevent_register":{
+    "label ":"EventRegistration",
+    "has_script":"false",
+    "name_field":"event_name",
+    "script_fields":{}},
+"discovery_probes_wmi_field":{
+    "label ":"WMIField",
+    "has_script":"false",
+    "name_field":"wmi_path",
+    "script_fields":{}},
+"cmn_timeline_page":{
+    "label ":"TimelinePage",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmn_timeline_sub_item":{
+    "label ":"TimelineSubItem",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"comm_channel_config":{
+    "label ":"CommunicationChannelConfiguration",
+    "has_script":"false",
+    "name_field":"type",
+    "script_fields":{}},
+"sm_template_definition":{
+    "label ":"SmTemplateDefinition",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_hr_core_visa_category":{
+    "label ":"HRVisaCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_security_obj_oper":{
+    "label ":"ObjectOperation",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_catalog_site":{
+    "label ":"CatalogSite",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pc_vendor_cat_item":{
+    "label ":"VendorCatalogItem",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_wizard_answer":{
+    "label ":"Answer",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_text_stop_words":{
+    "label ":"TextAnalyticsStopWords",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_section_m2m_home_page_module":{
+    "label ":"HomePageSectionModule",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_map_proc_to_group":{
+    "label ":"PasswordResetProcessUserGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"usageanalytics_count_cfg":{
+    "label ":"UsageAnalyticsCountConfiguration",
+    "has_script":"true",
+    "name_field":"definition_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"sc_dp_datum_task":{
+    "label ":"DatumOwnership",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_flow_trigger_plan":{
+    "label ":"ProcessFlowTriggerPlan",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_form":{
+    "label ":"Form",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_scope_script_access":{
+    "label ":"ScopeScriptAccess",
+    "has_script":"false",
+    "name_field":"script_name",
+    "script_fields":{}},
+"azure_action":{
+    "label ":"AzureAction",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"survey_master":{
+    "label ":"Survey",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_mobile_home_page_collection_m2m_home_page":{
+    "label ":"CollectionHomePage",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_impex_map":{
+    "label ":"ImportExportMap",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"discovery_sensor":{
+    "label ":"Sensor",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"discovery_sensor_multi":{
+    "label ":"MultiSensor",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sn_codesearch_search_group":{
+    "label ":"CodeSearchGroup",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_report_custom_chart":{
+    "label ":"CustomChart",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "render_script":"script_plain"}},
+"sys_ui_policy_action":{
+    "label ":"UIPolicyAction",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"expert_ui_policy_action":{
+    "label ":"WizardUIPolicyAction",
+    "has_script":"false",
+    "name_field":"expert_variable",
+    "script_fields":{}},
+"catalog_ui_policy_action":{
+    "label ":"CatalogUIPolicyAction",
+    "has_script":"false",
+    "name_field":"variable",
+    "script_fields":{}},
+"wf_ui_policy_action":{
+    "label ":"WorkflowUIPolicyAction",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_email_digest_interval":{
+    "label ":"DigestInterval",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_dt_app_group":{
+    "label ":"ApprovingGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pwd_cred_store_type":{
+    "label ":"PasswordResetCredentialStoreTypes",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"round_robin_archive":{
+    "label ":"RoundRobinArchive",
+    "has_script":"false",
+    "name_field":"aggregator",
+    "script_fields":{}},
+"pa_dashboards_permissions":{
+    "label ":"DashboardPermissions",
+    "has_script":"false",
+    "name_field":"identity",
+    "script_fields":{}},
+"cxs_table_email_config":{
+    "label ":"EmailConfiguration",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_service_api":{
+    "label ":"ServiceAPI",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"ecc_agent_script_include":{
+    "label ":"MIDServerScriptInclude",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_ui_list_script_client":{
+    "label ":"ListClientScript",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"pa_diagnostic":{
+    "label ":"Diagnostic",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"cmn_context_help":{
+    "label ":"HelpContext",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_portal":{
+    "label ":"ServicePortal",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "quick_start_config":"script"}},
+"sc_cat_item_delivery_task":{
+    "label ":"ExecutionPlanTask",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition_script":"script_plain",
+        "generation_script":"script_plain"}},
+"sc_cat_item_dt_approval":{
+    "label ":"ExecutionPlanApprovalTask",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "condition_script":"script_plain",
+        "generation_script":"script_plain",
+        "approval_script":"script_plain"}},
+"jrobin_graph":{
+    "label ":"RoundRobinGraph",
+    "has_script":"false",
+    "name_field":"title",
+    "script_fields":{}},
+"sys_security_acl_role":{
+    "label ":"AccessRoles",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"m2m_sp_ng_pro_sp_widget":{
+    "label ":"AngularProviders",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cal_day":{
+    "label ":"Day",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_link":{
+    "label ":"ContentLink",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"menu_item":{
+    "label ":"MenuItem",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"menu_section":{
+    "label ":"MenuSection",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_tags":{
+    "label ":"IndicatorGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_rel_type_suggest":{
+    "label ":"SuggestedRelationship",
+    "has_script":"false",
+    "name_field":"base_class",
+    "script_fields":{}},
+"sys_public":{
+    "label ":"PublicPages",
+    "has_script":"false",
+    "name_field":"page",
+    "script_fields":{}},
+"discovery_port_probe":{
+    "label ":"DiscoveryPortProbe",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script"}},
+"sys_rest_message_headers":{
+    "label ":"HTTPHeaders",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_platform_encryption_configuration":{
+    "label ":"EncryptedFieldConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ecc_agent_ip_range":{
+    "label ":"MIDServerIPRange",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"csm_table_map":{
+    "label ":"CsmTableMap",
+    "has_script":"true",
+    "name_field":"mapping_name",
+    "script_fields":{
+        "advanced_condition":"script",
+        "mapping_script":"script"}},
+"sp_search_source":{
+    "label ":"SearchSource",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "data_fetch_script":"script",
+        "facet_generation_script":"script"}},
+"sp_rel_widget_clone":{
+    "label ":"WidgetClone",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_filter":{
+    "label ":"Filter",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_page_meta":{
+    "label ":"MetaTags",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pwd_verification_type":{
+    "label ":"PasswordResetVerificationType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pm_console_column":{
+    "label ":"PlanningConsoleColumn",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_probes_cim_query":{
+    "label ":"CIMQuery",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cxs_rp_filter_mapping":{
+    "label ":"RecordProducerFilterMappingConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_dimensions_acl_elements":{
+    "label ":"ElementsList",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sc_cat_item_group_no_mtom":{
+    "label ":"NotAvailableforGroups",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ecc_agent_property":{
+    "label ":"MIDServerProperty",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"asmt_metric_category":{
+    "label ":"MetricCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"pa_breakdowns":{
+    "label ":"Breakdown",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sp_search_group":{
+    "label ":"SearchGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_type_detail":{
+    "label ":"DetailPages",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_transform_script":{
+    "label ":"TransformScript",
+    "has_script":"true",
+    "name_field":"when",
+    "script_fields":{
+        "script":"script_plain"}},
+"sp_search_facet":{
+    "label ":"Facet",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"baseline_config_field_map":{
+    "label ":"BaselineConfigurationFieldMap",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"discovery_sensor_multi_probe":{
+    "label ":"RespondstoProbe",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "script":"script"}},
+"sys_grid_canvas_pane":{
+    "label ":"GridCanvasPane",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_live_agent_setup":{
+    "label ":"LiveAgentSetup",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_atf_step_config_category":{
+    "label ":"TestStepConfigCategory",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_skill_contains":{
+    "label ":"ContainedSkills",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_db_view":{
+    "label ":"DatabaseView",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"comm_plan_type_lookup":{
+    "label ":"CommunicationPlanTypeLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"cmdb_health_metric":{
+    "label ":"CMDBHealthMetric",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_cat_item_category":{
+    "label ":"CatalogItemCategory",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_formatter":{
+    "label ":"UIFormatter",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_macro":{
+    "label ":"Macro",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"wf_ui_panel":{
+    "label ":"UIPanel",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"column_renderer":{
+    "label ":"ColumnRenderer",
+    "has_script":"false",
+    "name_field":"display_value",
+    "script_fields":{}},
+"sys_dashboard_detail":{
+    "label ":"DashboardPlacement",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"db_image":{
+    "label ":"Images",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sc_cat_item_user_criteria_no_mtom":{
+    "label ":"CatalogItemNotAvailablefor",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sn_codesearch_table":{
+    "label ":"CodeSearchTable",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"expert_panel_t_fields":{
+    "label ":"FieldSetter",
+    "has_script":"false",
+    "name_field":"pretty_name",
+    "script_fields":{}},
+"sys_portal_page":{
+    "label ":"PortalPage",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"content_page":{
+    "label ":"Page",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"ci_identifier":{
+    "label ":"CIIdentifier",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sp_page_route_map":{
+    "label ":"PageRouteMap",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"oauth_entity":{
+    "label ":"OauthEntity",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"oauth_oidc_entity":{
+    "label ":"OauthOidcEntity",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"dl_matcher":{
+    "label ":"DataLookupMatcherRules",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"dl_u_assignment":{
+    "label ":"AssignmentDataLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"dl_u_priority":{
+    "label ":"PriorityDataLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"x_fru_inc_incident_priority_lookup":{
+    "label ":"IncidentPriorityLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"x_snc_casemgt_assignment_rules":{
+    "label ":"AssignmentRules",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"x_fru_chg_change_priority_lookup":{
+    "label ":"ChangeScaleLookupRules",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"x_fru_prob_problem_priority_lookup":{
+    "label ":"ProblemPriorityLookup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_cs_configuration_page":{
+    "label ":"ConversationServerConfigurationPage",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_ui_annotation_type":{
+    "label ":"FormAnnotationType",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"asmt_signature":{
+    "label ":"Signature",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_calendar":{
+    "label ":"Calendar",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"cmn_map_page":{
+    "label ":"MapPage",
+    "has_script":"true",
+    "name_field":"name",
+    "script_fields":{
+        "script":"script_plain"}},
+"sys_ui_context_menu":{
+    "label ":"ContextMenu",
+    "has_script":"true",
+    "name_field":"sys_id",
+    "script_fields":{
+        "action_script":"script",
+        "dynamic_actions_script":"script",
+        "on_show_script":"script"}},
+"licensing_exclusion":{
+    "label ":"LicensingExclusion",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"pa_m2m_widget_indicators":{
+    "label ":"BreakdownWidgetIndicator",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_ui_hp_group":{
+    "label ":"InteractiveFilterGroup",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_choice_set":{
+    "label ":"ChoiceSet",
+    "has_script":"false",
+    "name_field":"element",
+    "script_fields":{}},
+"ua_table_licensing_config":{
+    "label ":"TableSubscriptionConfiguration",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"task_rel_allowed":{
+    "label ":"TaskRelationshipsAllowed",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_report_map_type":{
+    "label ":"ReportMapTypes",
+    "has_script":"false",
+    "name_field":"sys_id",
+    "script_fields":{}},
+"sys_dashboard":{
+    "label ":"DashboardLayout",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}},
+"sys_semaphore":{
+    "label ":"Semaphore",
+    "has_script":"false",
+    "name_field":"name",
+    "script_fields":{}}};
+
+Spider.scriptVariables = {
+"71aa7f6647032200b4fad7527c9a719b":{
+    "scriptType":"script",
+    "modelName":"Script",
+    "modelId":"106afb6647032200b4fad7527c9a71e7",
+    "label":"ActionStepDefinitionInput"},
+"c35dae3d0a0a0ba96248a7098ed9b4aa":{
+    "scriptType":"script",
+    "modelName":"Notification",
+    "modelId":"0a6c97790a0a0b2756919eb960284334",
+    "label":"ActivityVariables"},
+"c35db5a50a0a0ba96248a70938ae8de6":{
+    "scriptType":"email_script",
+    "modelName":"Notification",
+    "modelId":"0a6c97790a0a0b2756919eb960284334",
+    "label":"ActivityVariables"},
+"3f2e14bd0a2581024de81c293a49a8d7":{
+    "scriptType":"script",
+    "modelName":"Approval Coordinator",
+    "modelId":"283e8bb80a2581021d036a052ffc3433",
+    "label":"ActivityVariables"},
+"02c86d780a0a0b261e6a356bc893d348":{
+    "scriptType":"script",
+    "modelName":"Approval - User",
+    "modelId":"35433da80a0a029a0028c639a1e51eb4",
+    "label":"ActivityVariables"},
+"a782cde9c0a8006608f39abdd85c8395":{
+    "scriptType":"script_plain",
+    "modelName":"Approval - User",
+    "modelId":"35433da80a0a029a0028c639a1e51eb4",
+    "label":"ActivityVariables"},
+"c35e582f0a0a0ba96248a70985207e63":{
+    "scriptType":"script",
+    "modelName":"Approval - User",
+    "modelId":"35433da80a0a029a0028c639a1e51eb4",
+    "label":"ActivityVariables"},
+"069c53740a0a0b260e35ee0ead2dbbcc":{
+    "scriptType":"script",
+    "modelName":"Approval - Group",
+    "modelId":"354e911f0a0a029a00e6a0e6ad74206f",
+    "label":"ActivityVariables"},
+"069e81530a0a0b264289c1e23fe52558":{
+    "scriptType":"script",
+    "modelName":"Approval - Group",
+    "modelId":"354e911f0a0a029a00e6a0e6ad74206f",
+    "label":"ActivityVariables"},
+"a8a16056c0a800660449c1bbc94d797f":{
+    "scriptType":"script_plain",
+    "modelName":"Approval - Group",
+    "modelId":"354e911f0a0a029a00e6a0e6ad74206f",
+    "label":"ActivityVariables"},
+"006b9e591b221100adca1e094f0713a1":{
+    "scriptType":"script",
+    "modelName":"Parallel Flow Launcher",
+    "modelId":"35ef56111b211100adca1e094f071315",
+    "label":"ActivityVariables"},
+"e47e76101b221100adca1e094f07134e":{
+    "scriptType":"script",
+    "modelName":"Parallel Flow Launcher",
+    "modelId":"35ef56111b211100adca1e094f071315",
+    "label":"ActivityVariables"},
+"8f79bbdbc0a80066479b2d5ea4863c24":{
+    "scriptType":"script",
+    "modelName":"Catalog Task",
+    "modelId":"38891b6f0a0a0b1e00efdfdd77602027",
+    "label":"ActivityVariables"},
+"98b96f90c0a800666b58ec516f330397":{
+    "scriptType":"script_plain",
+    "modelName":"Catalog Task",
+    "modelId":"38891b6f0a0a0b1e00efdfdd77602027",
+    "label":"ActivityVariables"},
+"293493710a0a0b2115e3e5b4fce1d12a":{
+    "scriptType":"script",
+    "modelName":"Timer",
+    "modelId":"3961a1da0a0a0b5c00ecd84822f70d85",
+    "label":"ActivityVariables"},
+"8ab7c3515f112100a9ad2572f2b47713":{
+    "scriptType":"script",
+    "modelName":"Service Approval - User",
+    "modelId":"435603515f112100a9ad2572f2b477f5",
+    "label":"ActivityVariables"},
+"51c4318e373111003e7d40ed9dbe5d15":{
+    "scriptType":"script",
+    "modelName":"Scriptable Order Guide",
+    "modelId":"46359d4e373111003e7d40ed9dbe5d55",
+    "label":"ActivityVariables"},
+"b2be6bf2c3913000ed4860eb5bba8f5d":{
+    "scriptType":"script_plain",
+    "modelName":"Create CI Task",
+    "modelId":"4af3cf3ac3513000ed4860eb5bba8f99",
+    "label":"ActivityVariables"},
+"ce4f2ff2c3913000ed4860eb5bba8f96":{
+    "scriptType":"script",
+    "modelName":"Create CI Task",
+    "modelId":"4af3cf3ac3513000ed4860eb5bba8f99",
+    "label":"ActivityVariables"},
+"4f8da5ae0a0a0b68002b853b795a76eb":{
+    "scriptType":"script_plain",
+    "modelName":"SOAP Request",
+    "modelId":"4f8bd9a60a0a0b6800255139be654e2b",
+    "label":"ActivityVariables"},
+"5452a8bd0a0a0b68007c13e4b7b7a792":{
+    "scriptType":"script_plain",
+    "modelName":"SOAP Request",
+    "modelId":"4f8bd9a60a0a0b6800255139be654e2b",
+    "label":"ActivityVariables"},
+"c35defa90a0a0ba96248a709915afacc":{
+    "scriptType":"script_plain",
+    "modelName":"Subflow",
+    "modelId":"5994b389c0a80011000e64de81b1864c",
+    "label":"ActivityVariables"},
+"c35e54490a0a0ba96248a709ef933374":{
+    "scriptType":"script",
+    "modelName":"Subflow",
+    "modelId":"5994b389c0a80011000e64de81b1864c",
+    "label":"ActivityVariables"},
+"c3af85ef0a0a0ba901aa7979976b190f":{
+    "scriptType":"script_plain",
+    "modelName":"Run Probe",
+    "modelId":"623fccbc0a0a0b6c003016bf2c78ba01",
+    "label":"ActivityVariables"},
+"78ff4d6c0a0a0b9907b3cfb12b372c09":{
+    "scriptType":"script_plain",
+    "modelName":"HTTP Probe",
+    "modelId":"78f8d28c0a0a0b991425a091419ec61c",
+    "label":"ActivityVariables"},
+"a0f91f115f112100a9ad2572f2b47750":{
+    "scriptType":"script",
+    "modelName":"Service Approval - Group",
+    "modelId":"80c4d7115f112100a9ad2572f2b477b3",
+    "label":"ActivityVariables"},
+"8c99688a0a0a0bc80525ed1ed20408d0":{
+    "scriptType":"script_plain",
+    "modelName":"HTTP Get",
+    "modelId":"8c944a2c0a0a0bc831869102c7a93f13",
+    "label":"ActivityVariables"},
+"8da12ed80a0a0bc8034d2a1454520d89":{
+    "scriptType":"script_plain",
+    "modelName":"HTTP Put",
+    "modelId":"8d192ff10a0a0bc8072732c85ecb193b",
+    "label":"ActivityVariables"},
+"8da601fe0a0a0bc800d60ddb269497d3":{
+    "scriptType":"script_plain",
+    "modelName":"HTTP Post",
+    "modelId":"8d9757d20a0a0bc85978481e951dacef",
+    "label":"ActivityVariables"},
+"8da860fa0a0a0bc87dbad09696ba0c45":{
+    "scriptType":"script_plain",
+    "modelName":"HTTP Delete",
+    "modelId":"8d9a83010a0a0bc856a77fbcc6e2ef88",
+    "label":"ActivityVariables"},
+"94f745140a0007c24f8ee3c34b0b7f48":{
+    "scriptType":"script_plain",
+    "modelName":"SOAP Message",
+    "modelId":"9359a22ac0a801975710cd9e7daa8bfe",
+    "label":"ActivityVariables"},
+"c35e50810a0a0ba96248a709b450fc32":{
+    "scriptType":"script",
+    "modelName":"If",
+    "modelId":"98f621ca0a0a0b5900f7c291f5e45a0e",
+    "label":"ActivityVariables"},
+"c35df38c0a0a0ba96248a7099ea903ac":{
+    "scriptType":"script",
+    "modelName":"Subflow by ID",
+    "modelId":"9f46fb44c0a8016400e10261db653ecd",
+    "label":"ActivityVariables"},
+"c35df7530a0a0ba96248a7095e19c7c3":{
+    "scriptType":"script_plain",
+    "modelName":"Subflow by ID",
+    "modelId":"9f46fb44c0a8016400e10261db653ecd",
+    "label":"ActivityVariables"},
+"8eca692cc0a80066783fefee57143a1a":{
+    "scriptType":"script",
+    "modelName":"Create Task",
+    "modelId":"9f4d1be5c0a8016400043d34ce066316",
+    "label":"ActivityVariables"},
+"989cdb20c0a800661789b3de0f40214a":{
+    "scriptType":"script_plain",
+    "modelName":"Create Task",
+    "modelId":"9f4d1be5c0a8016400043d34ce066316",
+    "label":"ActivityVariables"},
+"c35dd0310a0a0ba96248a70936d276b3":{
+    "scriptType":"script",
+    "modelName":"Create Event",
+    "modelId":"9f680b92c0a801640026553f665b429f",
+    "label":"ActivityVariables"},
+"c35dd3ef0a0a0ba96248a70947e35325":{
+    "scriptType":"script",
+    "modelName":"Create Event",
+    "modelId":"9f680b92c0a801640026553f665b429f",
+    "label":"ActivityVariables"},
+"d14d5f67c33101008de24a3c5bba8f3f":{
+    "scriptType":"script_plain",
+    "modelName":"Run Workflow",
+    "modelId":"a1e18d75c33101008de24a3c5bba8fe4",
+    "label":"ActivityVariables"},
+"77c4be22d730220097eb6ccf6e610358":{
+    "scriptType":"script",
+    "modelName":"Catalog CI Task",
+    "modelId":"cc8a5266d730220097eb6ccf6e610396",
+    "label":"ActivityVariables"},
+"e2e33e22d730220097eb6ccf6e610377":{
+    "scriptType":"script_plain",
+    "modelName":"Catalog CI Task",
+    "modelId":"cc8a5266d730220097eb6ccf6e610396",
+    "label":"ActivityVariables"},
+"8f15ce1307f31000dada43c0d1021e21":{
+    "scriptType":"script_plain",
+    "modelName":"REST Message",
+    "modelId":"d6eb35df07b31000dada43c0d1021e90",
+    "label":"ActivityVariables"},
+"c35debce0a0a0ba96248a709440cf31a":{
+    "scriptType":"script",
+    "modelName":"Wait for condition",
+    "modelId":"d93a02ae0a0a0aa30077abad3fdac035",
+    "label":"ActivityVariables"},
+"c35ddef20a0a0ba96248a7090eccd518":{
+    "scriptType":"script",
+    "modelName":"Run Script",
+    "modelId":"db8c65aec0a8016501d00259bc7203a4",
+    "label":"ActivityVariables"},
+"989d9e235324220002c6435723dc3484":{
+    "scriptType":"script",
+    "modelName":"Run Server Side Script",
+    "modelId":"41de4a935332120028bc29cac2dc349a",
+    "label":"InputVariables"}};
+
+
+	]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>dave.knight</sys_created_by>
+        <sys_created_on>2018-10-11 04:08:15</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>2e0b960a4f496b00ea338e328110c773</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Spider</sys_name>
+        <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
+        <sys_update_name>sys_script_include_2e0b960a4f496b00ea338e328110c773</sys_update_name>
+        <sys_updated_by>dave.knight</sys_updated_by>
+        <sys_updated_on>2018-10-12 02:52:04</sys_updated_on>
+    </sys_script_include>
+</record_update>
