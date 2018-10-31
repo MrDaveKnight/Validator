@@ -263,6 +263,7 @@ Output.prototype = {
             this.state.resultsGR = new GlideRecord("x_snc_dk_valid_res_metrics");
             this.state.resultsGR.instance = "https://" + gs.getProperty("instance_name") + ".service-now.com";
             this.state.resultsGR.started = this.stats.startedAt;
+			this.state.resultsGR.run_description = this.stats.description;
         }
 
         var fields = new GlideRecord('sys_dictionary');
@@ -301,7 +302,6 @@ Output.prototype = {
             new GlideDateTime(this.stats.startedAt).getNumericValue();
         this.state.resultsGR.scan_duration = new GlideDuration(durationMS);
         gs.info("Duration (min): " + durationMS / (1000 * 60));
-        this.state.resultsGR.description = this.stats.description;
         this.state.resultsGR.package_format = this.state.format;
         this.state.resultsGR.package_query = this.state.query;
 		this.state.resultsGR.progress = 100;
@@ -427,7 +427,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>15</sys_mod_count>
+        <sys_mod_count>16</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -435,6 +435,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-31 16:41:45</sys_updated_on>
+        <sys_updated_on>2018-10-31 17:23:47</sys_updated_on>
     </sys_script_include>
 </record_update>
