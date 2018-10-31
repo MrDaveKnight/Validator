@@ -161,7 +161,10 @@ Output.prototype = {
         }
 		
 		// Send the results to the central metric repository
-        new x_snc_dk_valid_res.Transmitter().sendResults(this.state.resultsGR);
+        var transmitted = new x_snc_dk_valid_res.Transmitter().sendResults(this.state.resultsGR);
+		if (transmitted) {
+            this._markTransmitted ();
+        }
 
     },
 
@@ -408,6 +411,13 @@ Output.prototype = {
                 break;
         }
     },
+	
+	_markTransmitted: function() {
+        
+        this.state.resultsGR.transmitted = true;
+        this.state.resultsGR.update(); 
+    
+    },
 
     type: 'Output'
 };
@@ -417,7 +427,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>14</sys_mod_count>
+        <sys_mod_count>15</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -425,6 +435,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-31 14:54:56</sys_updated_on>
+        <sys_updated_on>2018-10-31 16:41:45</sys_updated_on>
     </sys_script_include>
 </record_update>
