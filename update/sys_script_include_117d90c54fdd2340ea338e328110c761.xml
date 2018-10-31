@@ -1,0 +1,681 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dk_validator.Scanner</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>Scanner</name>
+        <script><![CDATA[var Scanner = Class.create();
+
+//
+// Token handlers for Abstract Syntax Tree walk - callbacks passed to the AST walker 
+// (These can't be in the Main class, since the this context is lost on the callback)
+//
+// Terminology
+// --------------
+// There are two types of "Class" in the Validator application 
+//     #1 The Class created by a Script Include
+//     #2 The Class or type of a table (sys_class_name)
+//
+// The Scanner library leverages definition #2 exclusively. 
+//
+
+Scanner.prototype = {
+    initialize: function () {
+    },
+
+    type: 'Scanner'
+};
+
+Scanner.statementHandler = function (node, state, ancestors) {
+
+    state.stats[node.type + "Count"]++;
+    state.stats.LinesOfCode++;
+    state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+    state.has_script = true;
+
+
+};
+
+Scanner.functionDeclarationHandler = function (node, state, ancestors) {
+
+    try {
+
+        state.stats[node.type + "Count"]++;
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+
+        if (state.function_depth > 0) {
+            // We only want to track at the scope level, which are accessable 
+            // from outside the scope (no embedded functions) TODO
+            return;
+        }
+
+
+        if (node.id.type == "Identifier") {
+
+            var methodName = "";
+            if (state.block_scope[1] && state.block_scope[1].script_class) {
+                methodName = state.currentScope + state.block_scope[1].script_class + "." + node.id.name;
+            }
+            else {
+                methodName = state.currentScope + "." + node.id.name;
+            }
+            state.targets.methods[methodName] = 0;
+        }
+    }
+    catch (e) {
+        gs.error("Error in functionDeclarationHandler: " + e + ". Node: " + JSON.stringify(node));
+    }
+};
+
+Scanner.tryStatementHandler = function (node, state, ancestors) {
+
+    try {
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+
+        // only count try/catch that does something in the catch
+        if (node.handler.body.body)
+            state.stats[node.type + "Count"]++;
+
+    } catch (e) {
+        gs.error(e);
+    }
+};
+
+Scanner.variableDeclaratorHandler = function (node, state, ancestors) {
+
+    // We are tracking defined, in scope variables that reference tracked objects defined in the
+    // tracked Classes object above, what we will call "classes of interest".
+    // When a variable is declared, it can be initialized directly with one of those classes of interest,
+    // or it can be initialized indirectly, to another variable, which in turn references one of those classes of interest.
+    // The state.variables.<function_depth>.<variable_name> object tracks those declarations. Each
+    // property is the name of a defined variable, and the value is the class name.
+
+    try {
+
+        state.stats[node.type + "Count"]++;
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+
+        // gs.debug("Processing declaration at depth " + state.function_depth + " in " +
+        // JSON.stringify(node));
+
+        if (node.type == "VariableDeclarator" &&
+            node.id.type == "Identifier" &&
+            node.init) {
+            var detectedClass = 0;
+            if (node.init.type == "NewExpression") {
+
+                if (node.init.callee.type == "Identifier") {
+
+                    detectedClass = Scanner._getTrackedClass(node.init.callee.name, state);
+
+                }
+                else if (node.init.callee.type == "MemberExpression" &&
+                    node.init.callee.object.type == "Identifier" &&
+                    node.init.callee.property.type == "Identifier") {
+
+                    // Assume object is <scope> and poperty is <class>
+                    var qualifiedName = node.init.callee.object.name + "." + node.init.callee.property.name;
+                    detectedClass = Scanner._getTrackedClass(qualifiedName, state);
+
+                }
+            }
+            else if (node.init.type == "Identifier") {
+
+                detectedClass = Scanner._getTrackedClass(node.init.name, state);
+
+            }
+
+            if (detectedClass) {
+                Scanner._insertClassVariable(node.id.name, detectedClass, state, ancestors);
+            }
+
+        }
+    } catch (ex) {
+        gs.error("Bad node syntax in VariableDeclaration. " + ex);
+        gs.debug("Bad node: " + JSON.stringify(node));
+    }
+};
+
+Scanner.memberExpressionHandler = function (node, state, ancestors) {
+
+
+    // This callback locates the prototype and identifies the Script Includes Class.
+    try {
+        state.has_script = true;
+
+        if (node.property.type == "Identifier" &&
+            node.property.name == "prototype") {
+
+            var parent = ancestors[ancestors.length - 2];
+            if (parent.type == "AssignmentExpression" &&
+                parent.left == node) {
+
+                state.block_scope[state.block_depth].script_class = node.object.name;
+
+            }
+        }
+    } catch (e) {
+        gs.warn("Issue in memberExpressionHandler. " + e);
+    }
+};
+
+Scanner.assignmentExpressionHandler = function (node, state, ancestors) {
+    try {
+
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+        var detectedClass = 0;
+        if (node.type == "AssignmentExpression" &&
+            node.operator == "=") {
+
+            // Look for variables assigned to a tracked class
+            if (node.right.type == "Identifier" &&
+                node.left.type == "Identifier") {
+
+                detectedClass = Scanner._getTrackedClass(node.right.name, state);
+
+                if (detectedClass) {
+                    Scanner._insertClassVariable(node.left.name, detectedClass, state, ancestors);
+                }
+            }
+
+        }
+
+    } catch (e) {
+        gs.warn("Issue in assignmentExpressionHandler. " + e);
+    }
+};
+
+Scanner.callExpressionHandler = function (node, state, ancestors) {
+
+    try {
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+        if (node.callee.type == "MemberExpression" && node.callee.property.type == "Identifier") {
+
+            if (node.callee.object.type == "Identifier") {
+
+                if (Scanner._isThisObjectThisClass(node.callee.object.name, "gs", state))
+                    Scanner._callExpressionHandlerHelper("gs", node.callee.object.name,
+                        node.callee.property.name, state, ancestors);
+                else if (Scanner._isThisObjectThisClass(node.callee.object.name, "global.GSLog", state))
+                    Scanner._callExpressionHandlerHelper("global.GSLog", node.callee.object.name,
+                        node.callee.property.name, state, ancestors);
+
+            }
+            else if (node.callee.object.type == "NewExpression" && node.callee.object.callee.type == "Identifier") {
+
+
+                if (Scanner._isThisObjectThisClass(node.callee.object.callee.name, "gs", state))
+                    Scanner._callExpressionHandlerHelper("gs", node.callee.object.callee.name,
+                        node.callee.property.name, state, ancestors);
+                else if (Scanner._isThisObjectThisClass(node.callee.object.callee.name, "global.GSLog", state))
+                    Scanner._callExpressionHandlerHelper("global.GSLog", node.callee.object.callee.name,
+                        node.callee.property.name, state, ancestors);
+
+            }
+        }
+    }
+    catch (e) {
+        gs.error("Error in my callExpressionHandler: " + e + ". Node: " + JSON.stringify(node));
+    }
+};
+
+Scanner.functionExpressionHandler = function (node, state, ancestors) {
+
+
+
+    try {
+        state.stats[node.type + "Count"]++;
+        state.stats.LinesOfCode++;
+        state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
+        state.has_script = true;
+        var methodName = 0; // fully qualifed property being called, i.e scope.Class[.Property].function
+
+        var parent = ancestors[ancestors.length - 2];
+
+        if (parent.type == "AssignmentExpression" && parent.operator == "=" &&
+            parent.left.type == "MemberExpression" && parent.left.property.type == "Identifier") {
+            // We are assigning a to an object. The function name will be in
+            // the left side MemberExpression property. The object itself will be in the left
+            // side MemberExpression object. However, the object itself may be compound, i.e.
+            // it isn't a simple identifier, it is another MemberExpression, with an Object.Property pair. 
+            // Need to dive recursively to get the entire object name (may be a long dot walk)
+            var fullObjectName = Scanner._fullObjectName(parent.left.object);
+            if (fullObjectName) {
+                methodName = state.currentScope + "." + fullObjectName + "." + parent.left.property.name;
+            }
+            else {
+                methodName = state.currentScope + "." + parent.left.property.name;
+            }
+        }
+        else if (parent && parent.type == "Property" && parent.key.type == "Identifier") {
+            // We are a property inside another object. What that object is is tracked by 
+            // state.block_scope
+
+            var methodCallName = parent.key.name;
+            if (state.block_scope[1] && state.block_scope[1].script_class) {
+                methodName = state.currentScope + "." + state.block_scope[1].script_class + "." + methodCallName;
+            }
+            else {
+                methodName = state.currentScope + "." + methodCallName;
+            }
+        }
+        if (methodName) {
+            state.targets.methods[methodName] = 0;
+        }
+
+    }
+    catch (e) {
+        gs.error("Error in functionExpressionHandler: " + e + ". Node: " + JSON.stringify(node));
+    }
+};
+
+//
+// ATF Callback methods
+//
+
+Scanner.variableDeclaratorHandlerATF = function (node, state, ancestors) {
+
+    // We are tracking all defined in scope variables in ATF test scripts that reference a targeted Script Include.
+    // When a variable is declared, it can be initialized directly with a targeted Script Include class,
+    // or it can be initialized indirectly, to another variable, which in turn references one of those tracked classes.
+    // The state.variables.<function_depth>.<class_of_interest> object tracks those declarations. Each
+    // property is an array of all the declared variables that refer to that particular targeted class.
+    // The state.variables.<function_depth>.<variable_name> object tracks those declarations. Each
+    // property is the name of a defined variable, and the value is the class name.
+
+    try {
+
+        //gs.debug("Processing ATF declaration at depth " + state.function_depth + " in " +
+        //JSON.stringify(node));
+
+        if (node.type == "VariableDeclarator" &&
+            node.id.type == "Identifier" &&
+            node.init) {
+            var detectedClass = 0;
+            if (node.init.type == "NewExpression") {
+                if (node.init.callee.type == "Identifier") {
+
+                    detectedClass = Scanner._getTargetedClass(node.init.callee.name, state);
+                }
+                else if (node.init.callee.type == "MemberExpression" &&
+                    node.init.callee.object.type == "Identifier" &&
+                    node.init.callee.property.type == "Identifier") {
+
+                    // callee.object.name should be scope. callee.property.name should be class.
+                    detectedClass = Scanner._getTargetedClass(node.init.callee.object.name + "." +
+                        node.init.callee.property.name, state);
+                }
+            }
+            else if (node.init.type == "Identifier") {
+
+                detectedClass = Scanner._getTargetedClass(node.init.name, state);
+
+            }
+
+            if (detectedClass) {
+                Scanner._insertClassVariable(node.id.name, detectedClass, state, ancestors);
+            }
+
+        }
+    } catch (ex) {
+        gs.error("variableDeclaratorHandlerATF: Bad node syntax in VariableDeclaration. " + ex);
+        gs.debug("variableDeclaratorHandlerATF: Bad node - " + JSON.stringify(node));
+    }
+};
+
+Scanner.callExpressionHandlerATF = function (node, state, ancestors) {
+
+    try {
+        if (node.callee.type == "Identifier") {
+            Scanner._callExpressionHandlerHelperATF(null,
+                node.callee.name, state, ancestors);
+        }
+        else if (node.callee.type == "MemberExpression" && node.callee.property.type == "Identifier") {
+            // The property is our name
+
+            if (node.callee.object.type == "Identifier") {
+                // The object could be a class, or a scope if there is no class ("global" level method of scope)
+                Scanner._callExpressionHandlerHelperATF(node.callee.object.name,
+                    node.callee.property.name, state, ancestors);
+
+            }
+            else if (node.callee.object.type == "NewExpression") {
+                if (node.callee.object.callee.type == "Identifier") {
+
+                    Scanner._callExpressionHandlerHelperATF(node.callee.object.callee.name,
+                        node.callee.property.name, state, ancestors);
+
+                }
+                else if (node.callee.object.callee.type == "MemberExpression" &&
+                    node.callee.object.callee.object.type == "Identifier" &&
+                    node.callee.object.callee.property.type == "Identifier") {
+                    // This expression should be <scope>.<Class>
+
+                    var calleeName = node.callee.object.callee.object.name + "." +
+                        node.callee.object.callee.property.name;
+                    Scanner._callExpressionHandlerHelperATF(calleeName,
+                        node.callee.property.name, state, ancestors);
+                }
+            }
+        }
+    }
+    catch (e) {
+        gs.error("Error in callExpressionHandlerATF: " + e + ". Node: " + JSON.stringify(node));
+    }
+};
+
+Scanner.assignmentExpressionHandlerATF = function (node, state, ancestors) {
+    try {
+
+        var detectedClass = 0;
+        if (node.type == "AssignmentExpression" &&
+            node.operator == "=" &&
+            node.right.type == "Identifier" &&
+            node.left.type == "Identifier") {
+
+            detectedClass = Scanner._getTargetedClass(node.right.name, state);
+
+        }
+
+        if (detectedClass) {
+            Scanner._insertClassVariable(node.left.name, detectedClass, state, ancestors);
+        }
+
+
+    } catch (e) {
+        gs.error("Error in assignmentExpressionHandlerATF. " + e);
+    }
+};
+
+
+//
+// Utility methods
+//
+
+Scanner._callExpressionHandlerHelper = function (class_name, caller_name, function_name, state, ancestors) {
+
+    if (class_name == "gs") {
+        if (function_name == "info" ||
+            function_name == "warn" ||
+            function_name == "error") {
+
+            state.stats.LogCallCount++;
+            gs.debug("Found GlideSystem logging. " + caller_name + "." + function_name);
+
+        }
+        else if (function_name == "debug") {
+
+            state.stats.DebugCallCount++;
+            gs.debug("Found GlideSystem debug. " + caller_name + "." + function_name);
+
+        }
+        else if (function_name == "log") {
+
+            state.stats.GlobalLogCallCount++;
+            gs.debug("Found GlideSystem global log. " + caller_name + "." + function_name);
+
+        }
+    }
+    else if (class_name == "global.GSLog") {
+        if (function_name == "info" ||
+            function_name == "warn" ||
+            function_name == "error" ||
+            function_name == "logInfo" ||
+            function_name == "logNotice" ||
+            function_name == "logWarning" ||
+            function_name == "logErr" ||
+            function_name == "logCrit" ||
+            function_name == "logAlert" ||
+            function_name == "logEmerg") {
+
+            state.stats.LogCallCount++;
+            gs.debug("Found GSLog logging. " + caller_name + "." + function_name);
+
+        }
+        else if (function_name == "logDebug") {
+
+            state.stats.DebugCallCount++;
+            gs.debug("Found GSLog debug. " + caller_name + "." + function_name);
+
+        }
+    }
+
+};
+
+Scanner._callExpressionHandlerHelperATF = function (caller_name, function_name, state, ancestors) {
+
+    // Record how many times a tracked Script Include method is called by ATF
+
+	/*
+		state.targets.methods[methodName]
+			Holds the method names found in all targeted Script Includes
+			Format of methodName = <scope>.<Class>.<function_property> 
+	*/
+
+
+    //gs.debug("Found a scripted TEST CALL: " + caller_name + "." + function_name);
+
+    // First, assume caller_name is the class being tested, or we are the "global" level of current scope, i.e. 
+    // there is no caller_name
+    var assumedMethodName = caller_name;
+
+    if (!caller_name) {
+        // This is a naked call, which implies we are at the "global" level of the current scope
+        assumedMethodName = state.currentScope;
+    }
+    else if (assumedMethodName.indexOf(".") == -1) {
+        // Add in the implied scope prefix
+        assumedMethodName = state.currentScope + "." + assumedMethodName;
+
+    }
+    assumedMethodName = assumedMethodName + "." + function_name;
+    if (state.targets.methods[assumedMethodName] !== undefined) {
+        gs.debug("Found a TARGETED scripted TEST CALL: " + assumedMethodName);
+        state.targets.methods[assumedMethodName]++; // Increments the number of calls to this method made by ATF
+        return;
+    }
+
+    // if we are here, it is possible that the caller_name was an explicit scope for a at the 
+    // global level of that scope, i.e. <scope>.<function>, or it is a variable. Try the scope theory first.
+    if (caller_name) {
+        assumedMethodName = caller_name + "." + function_name;
+        if (state.targets.methods[assumedMethodName] !== undefined) {
+            gs.debug("Found a TARGETED scripted TEST CALL: " + assumedMethodName);
+            state.targets.methods[assumedMethodName]++; // Increments the number of calls to this method made by ATF
+            return;
+        }
+    }
+
+    // Now assume the caller is a variable name, i.e. <variable>.<function>
+    for (var i = state.function_depth; i >= 0; i--) {
+        if (state.variables[i][caller_name] !== undefined) {
+            var className = state.variables[i][caller_name];
+
+            // Append the scope if it is implied in the call semantics (i.e., if it is missing)
+            if (className.indexOf(".") == -1) {
+                gs.error("PROGRAM ERROR - Every class stored should be fully qualified");
+                className = state.currentScope + "." + className;
+            }
+
+            var fullName = className + "." + function_name;
+
+            gs.debug("Found a TARGETED scripted TEST CALL: " + fullName);
+            if (state.targets.methods[fullName] !== undefined) {
+                state.targets.methods[fullName]++; // Increments the number of calls to this method made by ATF
+            }
+        }
+    }
+};
+
+Scanner._getTrackedClass = function (object_name, state) {
+    // object_name could be a class name, a fully qualified class name (<scope>.<Class>) or a variable name.
+    // If it is a class name (that doesn't need to be qualified, like GlideSystem), and is in ]
+    // the trackedClasses object, it is also the tracked class name.
+    // If it a class name that should be qualified with a scope, add the local scope.
+    // If it is a variable, we must look to see if that variable is referencing a tracked class.
+    // If so, return that tracked class.
+    // Returns null if object is not an instantiation of a tracked class, which also could mean it is not 
+    // yet initialized to anything.
+    if (trackedClasses[object_name])
+        return object_name;
+
+    if (object_name.indexOf(".") == -1) {
+        // Trying adding in the implied scope prefix
+        var qualifedObjectName = state.currentScope + "." + object_name;
+        if (trackedClasses[qualifedObjectName])
+            return qualifedObjectName;
+    }
+
+    for (var i = state.function_depth; i >= 0; i--) {
+        if (state.variables[i][object_name] !== undefined) {
+            return state.variables[i][object_name];
+        }
+    }
+
+    return null;
+};
+
+Scanner._getTargetedClass = function (object_name, state) {
+    // object_name could be a class (Script Include) name or a (Javascript) variable name.
+    // If it is a class name, and is in the list of tracked Script Includes,
+    //  it is the tracked class name.
+    // If it is a variable, we must look to see if that variable is referencing a tracked class.
+    //  If so, return that tracked class.
+    // Returns null if object is not an instantiation of a tracked class, which also could mean it is not 
+    // yet initialized to anything.
+
+    //
+    //	this.state.targets.classes.<className>
+    //		Holds fully qualified class names, i.e. <scope>.<Class>	
+    //
+
+    // First, assume object_name is the class
+    var assumedClassName = object_name;
+    if (assumedClassName.indexOf(".") == -1) {
+        // Add in the implied scope prefix
+        assumedClassName = state.currentScope + "." + assumedClassName;
+
+    }
+    if (state.targets.classes[assumedClassName] !== undefined)
+        return assumedClassName;
+
+    // Now assume it is a variable. See if it was initialized to a targeted class
+    // If so, return that class
+    for (var i = state.function_depth; i >= 0; i--) {
+        if (state.variables[i][object_name] !== undefined) {
+            return state.variables[i][object_name];
+        }
+    }
+
+    return null;
+};
+
+Scanner._getClassOfMethod = function (object_name, state) {
+    // Deprecated
+    // This should only be called for an object that has just had one of its properties executed.
+    // Therefore, object_name could be a class name or a variable name
+    // If it is a variable, it must have already been initialized to a class since we are calling a method on it,
+    // so look for it's class in the tracker
+    // If it is a class, 
+
+    for (var i = state.function_depth; i >= 0; i--) {
+        if (state.variables[i][object_name] !== undefined) {
+            return state.variables[i][object_name];
+        }
+    }
+
+    return null;
+};
+
+Scanner._isThisObjectThisClass = function (object_name, class_name, state) {
+
+    if (object_name == class_name)
+        return true;
+
+    // Our version of javascript has variables scoped by function. A variable declared in A
+    // will be seen by a B nested inside of function A, unless of course it is overriden by a 
+    // variable local to A. Function depth 0 is global scope, and those global variables are seen by everyone.
+    // This will look for a variable up the nested chain.
+    for (var i = state.function_depth; i >= 0; i--) {
+        if (state.variables[i][object_name] !== undefined) {
+            return state.variables[state.function_depth][object_name] == class_name;
+        }
+    }
+
+    return false;
+};
+
+Scanner._insertClassVariable = function (object_name, class_name, state, ancestors) {
+
+    state.variables[state.function_depth][object_name] = class_name;
+
+    gs.debug("Variable Declaration for \"" + class_name + "\" in " + Scanner._findContainingFunctionName(ancestors) +
+        "." + object_name + ", depth " + state.function_depth);
+};
+
+Scanner._findContainingFunctionName = function (ancestors) {
+    // Walk back up the ansestor nodes looking for a FunctionDeclaration or a FunctionExpression,
+    // whichever comes first.
+    for (var x = ancestors.length - 1; x >= 0; x--) {
+        if (!ancestors[x].type) continue;
+        if (ancestors[x].type == "FunctionDeclaration") {
+            return ancestors[x].id.name;
+        }
+        else if (ancestors[x].type == "FunctionExpression") {
+            // Go back one more to the parent property, a key:value pair.
+            // The FunctionExpression is the value. The name is an identier in the key
+            if (0 == x) throw "Could not find ancenstor for identification";
+            --x;
+            if (ancestors[x].type != "Property")
+                return "Unnamed";
+            else
+                return ancestors[x].key.name;
+        }
+    }
+};
+
+Scanner._fullObjectName = function (object) {
+
+    // Recursively dot walk the complete object name
+    try {
+        if (object.type == "Identifier") {
+            return object.name;
+        }
+        if (object.type == "MemberExpression") {
+            return Scanner._fullObjectName(object.object) + "." + object.property.name;
+        }
+        return null;
+    }
+    catch (e) {
+        gs.error("_walkObjectName: unexpected syntax, " + e);
+    }
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>dave.knight</sys_created_by>
+        <sys_created_on>2018-10-20 03:25:43</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>117d90c54fdd2340ea338e328110c761</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Scanner</sys_name>
+        <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
+        <sys_update_name>sys_script_include_117d90c54fdd2340ea338e328110c761</sys_update_name>
+        <sys_updated_by>dave.knight</sys_updated_by>
+        <sys_updated_on>2018-10-29 17:19:54</sys_updated_on>
+    </sys_script_include>
+</record_update>

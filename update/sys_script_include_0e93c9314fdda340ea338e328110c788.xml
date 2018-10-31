@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dk_validator.Output</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>Output</name>
+        <script><![CDATA[var Output = Class.create();
+Output.prototype = {
+    initialize: function (stats, state) {
+
+        this.stats = stats;
+        this.state = state;
+        this.totalTestableFileCount = 0; // A bit subjective, look in _tallyPrimaryAppFiles 
+
+        // Staging variables for output/persistence.
+        // The datastore field labels match the labels assigned to each metric,
+        // and printed out by gs.info below.
+        // Keep it that way, and things will continue to work fine.
+        // If one of the datastore labels doesn't match one of the results.[...] variable names,
+        // create a temporary variable here that does, and we will set it before getting
+        // to the DB dump
+        this.ManagedFileCount = 0;
+        this.ManagedMethodCount = 0;
+        this.ScriptTestPercentage = 0.0;
+        this.CodelessTestRatio = 0.0;
+        this.CommentPercentage = 0.0;
+        this.LogPercentage = 0.0;
+        this.DebugPercentage = 0.0;
+        this.ExceptionPercentage = 0.0;
+        this.NumberOfScriptsTested = 0;
+        this.NumberOfActiveScriptedTestSteps = 0;
+        this.NumberOfActiveCodelessTestSteps = 0;
+
+        // Record count rollups
+        this.TotalLogic = 0;
+        this.NoCodeLogic = 0;
+        this.LowCodeLogic = 0;
+        this.ProCodeLogic = 0;
+        this.WorkflowLogic = 0;
+        this.IntegrationLogic = 0;
+        this.PortalLogic = 0;
+        this.DiscoveryLogic = 0;
+        this.ScopedLogic = 0;
+        this.GlobalLogic = 0;
+        this.Test = 0;
+        this.Custom = 0;
+
+        // Configuration records are, by definition, not logic records
+        // Some may have some script in them, but they don't define major processes,
+        // and are therefore configuration records
+        this.TotalConfig = 0;
+        this.ScopedConfig = 0;
+        this.GlobalConfig = 0;
+        this.ScriptedConfig = 0;
+        this.SchemaConfig = 0;
+
+        // Priimary application files
+        this.ScriptIncludes = 0;
+        this.BusinessRules = 0;
+        this.ScriptActions = 0;
+        this.ScheduledJobs = 0;
+        this.DynamicFilters = 0;
+        this.Notifications = 0;
+        this.InboundEmailActions = 0;
+        this.WorkflowActivities = 0;
+        this.Relationships = 0;
+        this.Processors = 0;
+        this.UIMacros = 0;
+        this.UIPages = 0;
+        this.UIScripts = 0;
+        this.ClientScripts = 0;
+        this.FixScripts = 0;
+        this.DictionaryOverrides = 0;
+        this.Dictionary = 0;
+        this.ATFTestSteps = 0;
+        this.ATFTests = 0;
+
+        // 
+        // Calculate rollups
+        //
+
+        for (var table_class_name in this.stats.inventory) {
+
+            this.ManagedFileCount += this.stats.inventory[table_class_name].count;
+
+            this._tallyPrimaryAppFiles(table_class_name);
+
+            // Tally up wf_activity script counts
+            // This needs to be kept in sync with main's declaration of modelsWithScript,
+            // And Inspector.examineVariable's switch statement to filter modelsWithScript!
+            if (this.stats.inventory.wf_activity) {
+                for (var c in this.stats.modelsWithScript.wf_activity) {
+                    this.stats.inventory.wf_activity.scripted_count++;
+                }
+            }
+
+            switch (this.stats.inventory[table_class_name].type) {
+                case "NoLowCode":
+                    this.TotalLogic += this.stats.inventory[table_class_name].count;
+                    this.LowCodeLogic += this.stats.inventory[table_class_name].scripted_count;
+                    this.NoCodeLogic += this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].scripted_count;
+                    if (Cat.isWorkflowLogicRecord(table_class_name)) {
+                        this.WorkflowLogic += this.stats.inventory[table_class_name].count;
+                    }
+                    this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
+                    this.ScopedLogic += this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count;
+                    break;
+                case "ProCode":
+                    this.TotalLogic += this.stats.inventory[table_class_name].count;
+                    this.ProCodeLogic += this.stats.inventory[table_class_name].count;
+                    if (Cat.isIntegrationLogicRecord(table_class_name)) {
+                        this.IntegrationLogic += this.stats.inventory[table_class_name].count;
+                    }
+                    if (Cat.isPortalLogicRecord(table_class_name)) {
+                        this.PortalLogic += this.stats.inventory[table_class_name].count;
+                    }
+                    if (Cat.isDiscoveryLogicRecord(table_class_name)) {
+                        this.DiscoveryLogic += this.stats.inventory[table_class_name].count;
+                    }
+                    this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
+                    this.ScopedLogic += this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count;
+                    break;
+                case "Test":
+                    this.Test += this.stats.inventory[table_class_name].count;
+                    break;
+                case "Custom":
+                    this.Custom += this.stats.inventory[table_class_name].count;
+                    break;
+                case "Config":
+                    this.TotalConfig += this.stats.inventory[table_class_name].count;
+                    this.GlobalConfig += this.stats.inventory[table_class_name].global_count;
+                    this.ScopedConfig += this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count;
+                    this.ScriptedConfig += this.stats.inventory[table_class_name].scripted_count;
+                    if (Cat.isSchemaConfigRecord(table_class_name)) {
+                        this.SchemaConfig += this.stats.inventory[table_class_name].count;
+                    }
+                    break;
+                default:
+                    gs.error("Bogus inventory detected!");
+                    break;
+
+            }
+        }
+    },
+
+    run: function () {
+
+        this._printToLog();
+
+        if (gs.tableExists("x_snc_dk_valid_res_metrics")) {
+            // The Validator Results app is installed.
+            // Save our results to it.
+            this._persistToDatabase();
+        }
+		
+		// Send the results to the central metric repository
+        new x_snc_dk_valid_res.Transmitter().sendResults(this.state.resultsGR);
+
+    },
+
+    _printToLog: function () {
+
+        //
+        // Human readable
+        //
+
+        var targetedMethodCount = 0;
+        var testedMethodCount = 0;
+        if (this.state.processingPackages) {
+            gs.debug("Targeted Methods for ATF Test Execution Statistics");
+            gs.debug("--------------------------------------------------------------");
+            for (var q in this.state.targets.methods) {
+                targetedMethodCount++;
+                gs.debug(q);
+                if (this.state.targets.methods[q] > 0)
+                    testedMethodCount++;
+            }
+        }
+
+        gs.info("");
+        gs.info("Risk Factors");
+        gs.info("--------------------------------------------------------------");
+        gs.info("ManagedFileCount: " + this.ManagedFileCount);
+        if (this.state.processingPackages) {
+            gs.info("ManagedMethodCount:" + targetedMethodCount);
+            this.ManagedMethodCount = targetedMethodCount; // for DB load to come
+        }
+        gs.info("LinesOfCode:" + this.state.stats.LinesOfCode);
+        gs.info("ScriptSize:" + this.state.stats.ScriptSize);
+
+        gs.info("");
+        gs.info("Risk Mitigation Factors");
+        gs.info("--------------------------------------------------------------");
+        if (targetedMethodCount > 0) {
+            this.ScriptTestPercentage = ((testedMethodCount / targetedMethodCount) * 100.0).toFixed(2);
+            gs.info("ScriptTestPercentage: " + this.ScriptTestPercentage + "%");
+        }
+        if (this.stats.totalTestableFileCount > 0) {
+            this.CodelessTestRatio = (this.stats.codelessAtfStepCount / this.totalTestableFileCount).toFixed(2);
+            gs.info("CodelessTestRatio: " + this.CodelessTestRatio);
+        }
+        if (this.stats.CodeCharCount > 0) {
+            this.CommentPercentage = ((this.stats.CommentCharCount / this.stats.CodeCharCount) * 100.0).toFixed(2);
+            gs.info("CommentPercentage: " + this.CommentPercentage + "%");
+        }
+        if (this.state.stats.LinesOfCode > 0) {
+            this.LogPercentage = ((this.state.stats.LogCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+            gs.info("LogPercentage: " + this.LogPercentage + "%");
+            this.DebugPercentage = ((this.state.stats.DebugCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+            gs.info("DebugPercentage: " + this.DebugPercentage + "%");
+            this.ExceptionPercentage = ((this.state.stats.TryStatementCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
+            gs.info("ExceptionPercentage: " + this.ExceptionPercentage + "%");
+        }
+        else {
+            gs.info("No executable lines of code scanned. Nothing to report on log, debug and exception handling percentages.");
+        }
+
+        if (this.state.processingPackages) {
+            gs.info("");
+            gs.info("Raw Test and Logging Data:");
+            gs.info("--------------------------------------------------------------");
+            this.NumberOfScriptsTested = testedMethodCount;
+            gs.info("NumberOfScriptsTested: " + testedMethodCount);
+            gs.info("NumberOfActiveScriptedTestSteps: " + this.stats.NumberOfActiveScriptedTestSteps);
+            gs.info("NumberOfActiveCodelessTestSteps: " + this.stats.NumberOfActiveCodelessTestSteps);
+            gs.info("LogCallCount: " + this.state.stats.LogCallCount);
+            gs.info("DebugCallCount: " + this.state.stats.DebugCallCount);
+        }
+
+        gs.info("");
+        gs.info("Raw Source Code Data:");
+        gs.info("--------------------------------------------------------------");
+        gs.info("NoCommentFileCount: " + this.stats.NoCommentFileCount);
+        for (var p in this.state.stats) {
+            if (p.indexOf("inventory") == -1) {
+                gs.info(p + ": " + this.state.stats[p]);
+            }
+        }
+    },
+
+    _persistToDatabase: function () {
+
+        //
+        // Dump to database
+        // 1. Iterate through the metric fields in the table, looking for metrics in 
+        // the scanner whos lables match the field labels
+        // 2. Dump the raw record counts as a JSON string
+        //
+
+        var resultsInitialized = true;
+        if (!this.state.resultsGR) {
+            resultsInitialized = false;
+            this.state.resultsGR = new GlideRecord("x_snc_dk_valid_res_metrics");
+            this.state.resultsGR.instance = "https://" + gs.getProperty("instance_name") + ".service-now.com";
+            this.state.resultsGR.started = this.stats.startedAt;
+        }
+
+        var fields = new GlideRecord('sys_dictionary');
+        fields.addEncodedQuery("name=x_snc_dk_valid_res_metrics^elementNOT LIKEsys_^element!=transmitted^element!=started^element!=instance^element!=scan_duration^element!=number^internal_type!=collection");
+        fields.query();
+        while (fields.next()) {
+
+
+            // The labels of the fields in the table were configured to match
+            //	the variable names in here
+            if (this[fields.column_label]) {
+                this.state.resultsGR[fields.element] = this[fields.column_label];
+            }
+            else if (this.stats[fields.column_label]) {
+                this.state.resultsGR[fields.element] = this.stats[fields.column_label];
+            }
+            else if (this.state.stats[fields.column_label]) {
+                this.state.resultsGR[fields.element] = this.state.stats[fields.column_label];
+            }
+        }
+
+        var allCountsOutput = "";
+        for (var tableName in this.stats.inventory) {
+            allCountsOutput += tableName + "\n";
+            allCountsOutput += "\tCount: " + this.stats.inventory[tableName].count + "\n";
+            allCountsOutput += "\tScripted Count: " +
+                this.stats.inventory[tableName].scripted_count + "\n";
+            allCountsOutput += "\tGlobal Count: " +
+                this.stats.inventory[tableName].global_count + "\n";
+            allCountsOutput += "\tRecord Type: " + this.stats.inventory[tableName].type + "\n\n";
+        }
+        this.state.resultsGR.all_counts = allCountsOutput;
+        var endedAt = gs.hoursAgo(0);
+
+        var durationMS = new GlideDateTime(endedAt).getNumericValue() -
+            new GlideDateTime(this.stats.startedAt).getNumericValue();
+        this.state.resultsGR.scan_duration = new GlideDuration(durationMS);
+        gs.info("Duration (min): " + durationMS / (1000 * 60));
+        this.state.resultsGR.description = this.stats.description;
+        this.state.resultsGR.package_format = this.state.format;
+        this.state.resultsGR.package_query = this.state.query;
+		this.state.resultsGR.progress = 100;
+		this.state.resultsGR.status = this.state.status;
+        this.state.resultsGR.checksum = this.stats.checksum >>> 0;
+
+        if (resultsInitialized) {
+            // I know this will insert if record didn't exist. Call me paranoid.
+            this.state.resultsGR.update();
+        }
+        else {
+            this.state.resultsGR.insert();
+        }
+    },
+
+
+    _tallyPrimaryAppFiles: function (fileType) {
+
+        switch (fileType) {
+            case "sys_script_include":
+                //"Script Include":
+                this.ScriptIncludes = this.stats.inventory[fileType].count;
+                break;
+            case "sys_script":
+                // "Business Rule":
+                this.BusinessRules = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                break;
+            case "sysevent_script_action":
+                // "Script Action":
+                this.ScriptActions = this.stats.inventory[fileType].count;
+                break;
+            case "sysauto_script":
+                // "Scheduled Job":
+                this.ScheduledJobs = this.stats.inventory[fileType].count;
+                break;
+            case "sys_filter_option_dynamic":
+                // "Dynamic Filter Options":
+                this.DynamicFilters = this.stats.inventory[fileType].count;
+                break;
+            case "sys_script_email":
+                // "Notification":
+                this.Notifications = this.stats.inventory[fileType].count;
+                break;
+            case "sysevent_in_email_action":
+                // "Inbound Email Actions":
+                this.InboundEmailActions = this.stats.inventory[fileType].count;
+                break;
+            case "sys_relationship":
+                // "Relationship":
+                this.Relationships = this.stats.inventory[fileType].count;
+                break;
+            case "sys_processor":
+                // "Processor":
+                this.Processors = this.stats.inventory[fileType].count;
+                break;
+            case "sys_ui_macro":
+                // "Macro":
+                this.UIMacros = this.stats.inventory[fileType].count;
+                break;
+            case "sys_ui_page":
+                // "UI Page":
+                this.UIPages = this.stats.inventory[fileType].count;
+                break;
+            case "sys_ui_script":
+                // "UI Script":
+                this.UIScripts = this.stats.inventory[fileType].count;
+                break;
+            case "sys_script_client":
+                // "Client Script":
+                this.ClientScripts = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                break;
+            case "sys_script_fix":
+                // "Fix Script":
+                this.FixScripts = this.stats.inventory[fileType].count;
+                break;
+            case "wf_activity":
+                // "Workflow Activity"
+                this.WorkflowActivities = this.stats.inventory[fileType].count;
+                break;
+            case "sys_dictionary_override":
+                // "Dictionary Entry Override":
+                this.DictionaryOverrides = this.stats.inventory[fileType].count;
+                break;
+            case "sys_dictionary":
+                // "Dictionary":
+                this.Dictionary = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                break;
+
+            // ATF tests
+
+            case "sys_atf_step":
+                // "Test Step":
+                // ?We could pull scripts out? Value is in sys_variable_value record
+                // First sys_id in test step is for the step itself. Others are for the variables.
+                // Of course, this is handled by the caller, which uses a lazy RegEx fortunately.
+                this.ATFTestSteps = this.stats.inventory[fileType].count;
+                break;
+            case "sys_atf_test":
+                // "Test":
+                this.ATFTests = this.stats.inventory[fileType].count;
+                break;
+
+            default:
+                break;
+        }
+    },
+
+    type: 'Output'
+};
+]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>dave.knight</sys_created_by>
+        <sys_created_on>2018-10-22 13:19:48</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
+        <sys_mod_count>14</sys_mod_count>
+        <sys_name>Output</sys_name>
+        <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
+        <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
+        <sys_updated_by>dave.knight</sys_updated_by>
+        <sys_updated_on>2018-10-31 14:54:56</sys_updated_on>
+    </sys_script_include>
+</record_update>

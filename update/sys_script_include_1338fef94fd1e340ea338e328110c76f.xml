@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_dk_validator.Inspector</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>Inspector</name>
+        <script><![CDATA[//
+// The Inspector Class can examine the following record classes - 
+//      - Application File descendents
+//      - wf_activty
+//      - sys_variable_value
+//
+// It will take inventory of both record and script metrics 
+//
+
+
+var Inspector = Class.create();
+Inspector.prototype = {
+    initialize: function () {
+    },
+
+    type: 'Inspector'
+};
+
+// Take inventory of an Application File descendent
+// 
+// Caller must ensure that 
+//      - The GlideRecord is an Application File descendent 
+//      - The GlideRecord is active and under inspection, i.e.
+//          - Inspector.isRecordUnderInspection(gr, ...) returns true 
+//          - Inspector.isActive(gr) is true
+// 
+// This method will update various metrics based on the record class (table), 
+// and scan scripts for script metrics, if any exist.
+//
+// If this is a scan of a packaged artifacts (update sets, pluggins, scopes), it will
+// also log all scripted library methods found for subsequent ATF execution 
+// analysis.
+Inspector.examineRecord = function (stats, state, gr, class_name, name_field, api, isPackageScan) {
+    // gr must be an Application File or descendent
+
+    try {
+        if (isPackageScan) {
+            Inspector.logTargets(state, class_name, gr.sys_id.toString(), api);
+        }
+
+        Inspector.initializeInventoryLog(stats, state, class_name);
+
+        // A parameter into the AST walk basically, since we count code in there
+        state.stats.inventoryIndex = class_name;
+
+        stats.inventory[class_name].count++;
+
+        if (!gr.sys_scope || gr.sys_scope == "global") {
+            stats.inventory[class_name].global_count++;
+            state.currentScope = "global";
+        }
+        else {
+            state.currentScope = gr.sys_scope.toString();
+        }
+
+        if (Spider.appFiles[class_name].has_script) {
+
+            // Get script fields in this application file
+            var scriptFields = Spider.appFiles[class_name].script_fields;
+            if (!scriptFields) {
+                // This app file doesn't have any scripts
+                gs.error("Script fields for " + class_name + " not constructed properly!");
+                return;
+            }
+
+            // AST walk handlers needed for script scans
+            var scriptHandlers = {
+                FunctionDeclaration: Scanner.statementHandler,
+                FunctionExpression: Scanner.statementHandler,
+                CallExpression: Scanner.callExpressionHandler,
+                AssignmentExpression: Scanner.assignmentExpressionHandler,
+                MemberExpression: Scanner.memberExpressionHandler,
+                VariableDeclarator: Scanner.variableDeclaratorHandler,
+                ExpressionStatement: Scanner.statementHandler,
+                BlockStatement: Scanner.statementHandler,
+                IfStatement: Scanner.statementHandler,
+                LabeledStatement: Scanner.statementHandler,
+                BreakStatement: Scanner.statementHandler,
+                ContinueStatement: Scanner.statementHandler,
+                WithStatement: Scanner.statementHandler,
+                SwitchStatement: Scanner.statementHandler,
+                ReturnStatement: Scanner.statementHandler,
+                ThrowStatement: Scanner.statementHandler,
+                TryStatement: Scanner.tryStatementHandler,
+                WhileStatement: Scanner.statementHandler,
+                DoWhileStatement: Scanner.statementHandler,
+                ForStatement: Scanner.statementHandler,
+                ForOfStatement: Scanner.statementHandler,
+                LetStatement: Scanner.statementHandler,
+                DebuggerStatement: Scanner.statementHandler
+            };
+
+            // Script Includes and global business rules have library methods that can be called from
+            // other scripts, and tested via ATF. These handlers will keep track of those library methods
+            // Note that the business rule "global" is not its scope, but rather it's "table" assignment.
+            // Global means it has no specific table. It is always available for execution, i.e. a
+            // library method.
+            if (isPackageScan && (gr.sys_class_name == "sys_script_include" ||
+                (gr.sys_class_name == "sys_script" && gr.collection == "global"))) {
+                scriptHandlers.FunctionDeclaration = Scanner.functionDeclarationHandler;
+                scriptHandlers.FunctionExpression = Scanner.functionExpressionHandler;
+            }
+
+            // Since we are here in this block, this record has one or more fields of script type. 
+            // Want to make sure there actually is script in at least one field, other than comments.
+            // That is what we are tracking. The number of application files with 
+            // executable script 
+            state.has_script = false;
+
+            for (var field in scriptFields) {
+
+                if (scriptFields[field] != "script" && scriptFields[field] != "script_plain")
+                    continue; // only processing these right now
+
+                var script_string = gr[field].toString(); // To be under inspection, must be a script
+				if (!script_string)
+                    continue;
+				
+                //
+                // Special handling of scripts in a "partial" format (something must be added
+                // in order to be parsed properly)
+                //
+
+                // All of these begin with an anonymous function, i.e
+                // function() {...}
+                // They need a prefix, i.e. var X = function() {...}, to make 
+                // the parser happy.
+                // This may NOT be a complete list! TODO - go through and find all script fields
+                // that have this format
+                if (class_name == "sp_widget" || class_name == "sp_header_footer" ||
+                    class_name == "discovery_sensor_probe_conditional" ||
+                    class_name == "ecc_agent_capability_value_test") {
+                    if (field == "client_script" || field == "link" || field == "condition_script") {
+                        script_string = "var X = " + script_string;
+                    }
+                }
+                else if (class_name == "sp_angular_provider" ||
+                    class_name == "discovery_port_probe" ||
+                    class_name == "discovery_sensor_multi_probe" ||
+                class_name == "ci_identifier") {
+                    if (field == "script") {
+                        script_string = "var X = " + script_string;
+                    }
+                }
+				
+                var record_name = class_name + "::" + gr[name_field].toString() + ":" + field;
+
+                Inspector.scanScript(state, stats, script_string, record_name, scriptHandlers);
+
+            }
+            if (state.has_script == true) {
+                stats.inventory[class_name].scripted_count++;
+            }
+        }
+    }
+    catch (e) {
+        gs.error("Inspector.examineRecord exception for " + class_name + "::" + gr[name_field] + ". Msg: " + e);
+    }
+};
+
+
+Inspector.examinePayload = function (stats, state, payload) {
+    // Payload must be for an Application File or descendent
+    // This will only be called if we are scanning packages (update sets or pluggins)
+
+    try {
+
+        var payloadXML = new XMLDocument2();
+        payloadXML.parseXML(payload);
+
+        // Get the class name (table name)
+        var class_name = payloadXML.getNode("/record_update").getAttribute("table");
+        if (class_name == "sys_script_include") {
+            var x = 0;
+        }
+		
+        Inspector.initializeInventoryLog(stats, state, class_name);
+
+        // A parameter into the AST walk basically, since we count code in there
+        state.stats.inventoryIndex = class_name;
+
+        stats.inventory[class_name].count++;
+
+        if ("Custom" == stats.inventory[class_name].type) {
+            // This is an unknown file class 
+
+            // TODO Open up it's dictionary, and look for scripts to process
+            // TODO Perhaps also look for strings that have javascript in them, to 
+            // see if someone is trying to cheat
+            // For now, we simply record the fact that it exists 
+
+        }
+        else {
+            // This is an Application File
+
+            var scope = payloadXML.getNodeText("/record_update/" + class_name + "/sys_scope");
+
+            if (!scope || scope == "global") {
+                stats.inventory[class_name].global_count++;
+                state.currentScope = "global";
+            }
+            else {
+                state.currentScope = scope;
+            }
+
+            if (Spider.appFiles[class_name].has_active_field) {
+                // This is an "Active" record. Can be enabled or disabled.
+
+                // If disabled, don't process it for scripts
+                if ("true" != payloadXML.getNodeText("/record_update/" + class_name + "/active"))
+                    return;
+
+            }
+            // At this point we have the payload of an enabled "Active" record, or a "Passive" record,
+            // which can't be disabled, so continue on ...
+
+            var api_name = payloadXML.getNodeText("/record_update/" + class_name + "/api_name");
+            var sys_id = payloadXML.getNodeText("/record_update/" + class_name + "/sys_id");
+            Inspector.logTargets(state, class_name, sys_id, api_name);
+
+            if (Spider.appFiles[class_name].has_script) {
+
+                // Get script fields in this application file
+                var scriptFields = Spider.appFiles[class_name].script_fields;
+                if (!scriptFields) {
+                    // This app file doesn't have any scripts
+                    gs.error("Script fields for " + class_name + " not constructed properly!");
+                    return;
+                }
+
+                // AST walk handlers needed for script scans
+                var scriptHandlers = {
+                    FunctionDeclaration: Scanner.statementHandler,
+                    FunctionExpression: Scanner.statementHandler,
+                    CallExpression: Scanner.callExpressionHandler,
+                    AssignmentExpression: Scanner.assignmentExpressionHandler,
+                    MemberExpression: Scanner.memberExpressionHandler,
+                    VariableDeclarator: Scanner.variableDeclaratorHandler,
+                    ExpressionStatement: Scanner.statementHandler,
+                    BlockStatement: Scanner.statementHandler,
+                    IfStatement: Scanner.statementHandler,
+                    LabeledStatement: Scanner.statementHandler,
+                    BreakStatement: Scanner.statementHandler,
+                    ContinueStatement: Scanner.statementHandler,
+                    WithStatement: Scanner.statementHandler,
+                    SwitchStatement: Scanner.statementHandler,
+                    ReturnStatement: Scanner.statementHandler,
+                    ThrowStatement: Scanner.statementHandler,
+                    TryStatement: Scanner.tryStatementHandler,
+                    WhileStatement: Scanner.statementHandler,
+                    DoWhileStatement: Scanner.statementHandler,
+                    ForStatement: Scanner.statementHandler,
+                    ForOfStatement: Scanner.statementHandler,
+                    LetStatement: Scanner.statementHandler,
+                    DebuggerStatement: Scanner.statementHandler
+                };
+
+                // Script Includes and global business rules have library methods that can be called from
+                // other scripts, and tested via ATF. These handlers will keep track of those library methods
+                // Note that the business rule "global" is not its scope, but rather it's "table" assignment.
+                // Global means it has no specific table. It is always available for execution, i.e. a
+                // library method.
+                if (class_name == "sys_script_include" ||
+                    (class_name == "sys_script" && scope == "global")) {
+                    scriptHandlers.FunctionDeclaration = Scanner.functionDeclarationHandler;
+                    scriptHandlers.FunctionExpression = Scanner.functionExpressionHandler;
+                }
+
+                // Since we are here in this block, this record has one or more fields of script type. 
+                // Want to make sure there actually is script in at least one field, other than comments.
+                // That is what we are tracking. The number of application files with 
+                // executable script 
+                state.has_script = false;
+
+                for (var field in scriptFields) {
+
+                    if (scriptFields[field] != "script" && scriptFields[field] != "script_plain")
+                        continue; // only processing these right now
+
+                    var script = payloadXML.getNodeText("/record_update/" + class_name + "/" + field);
+                    //var nameField = Spider.appFiles[class_name].name_field;
+                    //var name = payloadXML.getNodeText("/record_update/" + class_name + "/" + nameField);
+                    var record_name = class_name + "::" + sys_id;
+
+                    Inspector.scanScript(state, stats, script, record_name, scriptHandlers);
+
+                }
+                if (state.has_script == true) {
+                    stats.inventory[class_name].scripted_count++;
+                }
+            }
+        }
+    }
+    catch (e) {
+
+        // Find sys_id for error report
+        var id = payload.match(/<sys_id>(.+?)<\/sys_id>/);
+        gs.error("Inspector.examinePayload exception, sys_id: " + id[1] + ". Msg: " + e);
+    }
+};
+
+// Take inventory of a Workflow Activity (wf_activty)
+// 
+// Caller must ensure that 
+//      - The GlideRecord is a wf_activity 
+//      - The GlideRecord is active and under inspection, i.e.
+//          - Inspector.isRecordUnderInspection(gr, ...) returns true 
+//          - Inspector.isActive(gr) is true
+// 
+// This method will update various metrics based on the record class (table). 
+// It will not scan any script (since none exist on the wf_activity record itself.
+// We will scan sys_variable_values for the associated scripts, if any.)
+Inspector.examineWorkflowActivity = function (stats, state, name, scope) {
+
+    var class_name = "wf_activity";
+
+    try {
+
+        // Initialize the inventory log if necessary
+        Inspector.initializeInventoryLog(stats, state, class_name);
+
+        // A parameter into the AST walk basically, since we count code in there
+        state.stats.inventoryIndex = class_name;
+
+        stats.inventory[class_name].count++;
+
+        if (!scope || scope == "global") {
+            stats.inventory.wf_activity.global_count++;
+            state.currentScope = "global";
+        }
+        else {
+            state.currentScope = scope;
+        }
+    }
+    catch (e) {
+        gs.error("Inspector.examineWorkflowActivity exception in " + class_name + "::" + name + ". Msg: " + e);
+    }
+};
+
+
+// Take inventory of this Variable (sys_variable_value). Caller strips information out of
+// the GlideRecord before passing it into this function (enables direct processing of update set
+// payloads)
+// 
+// Caller must ensure that  
+//      - The information is from a sys_variable_value record 
+//      - The Variable is active and under inspection, i.e.
+//          - Inspector.isVariableUnderInspection(gr, ...) returns true, 
+//          - Inspector.isActive(gr) is true, or in an active workflow update xml payload 
+// 
+// This method will scan scripts for script metrics, if any exist.
+Inspector.examineVariable = function (stats, state, script_string,
+    document_key, var_dictionary_id, var_id) {
+    // Parms:
+    //      document_key is the sys_id of the record this sys_variable_value is attached to.
+    //      var_dictionary_id is the sys_id of the associated var_dicationary record. 
+    //      var_id is the sys_id of the sys_variable_value being examined.
+    // 
+    // 
+
+
+    // AST walk handlers needed for script scans
+    var scriptHandlers = {
+        FunctionDeclaration: Scanner.statementHandler,
+        FunctionExpression: Scanner.statementHandler,
+        CallExpression: Scanner.callExpressionHandler,
+        AssignmentExpression: Scanner.assignmentExpressionHandler,
+        MemberExpression: Scanner.memberExpressionHandler,
+        VariableDeclarator: Scanner.variableDeclaratorHandler,
+        ExpressionStatement: Scanner.statementHandler,
+        BlockStatement: Scanner.statementHandler,
+        IfStatement: Scanner.statementHandler,
+        LabeledStatement: Scanner.statementHandler,
+        BreakStatement: Scanner.statementHandler,
+        ContinueStatement: Scanner.statementHandler,
+        WithStatement: Scanner.statementHandler,
+        SwitchStatement: Scanner.statementHandler,
+        ReturnStatement: Scanner.statementHandler,
+        ThrowStatement: Scanner.statementHandler,
+        TryStatement: Scanner.tryStatementHandler,
+        WhileStatement: Scanner.statementHandler,
+        DoWhileStatement: Scanner.statementHandler,
+        ForStatement: Scanner.statementHandler,
+        ForOfStatement: Scanner.statementHandler,
+        LetStatement: Scanner.statementHandler,
+        DebuggerStatement: Scanner.statementHandler
+    };
+
+
+    try {
+
+        var class_name = "nada";
+        switch (Spider.scriptVariables[var_dictionary_id].label) {
+            case "ActivityVariables":
+                class_name = "wf_activity";
+                break;
+            default:
+                gs.warn("examineVariable: _isVariableUnderInspection should have filtered out sys_variable_value:" + var_id);
+                return;
+                break;
+        }
+
+        // Initialize the inventory log 
+        // Counts for the model records will be taken elsewhere. Only script counts will be taken now.
+        // Note that the scripted_count field will be calculated at just before output 
+        // from the this.modelsWithScript counts
+        Inspector.initializeInventoryLog(stats, state, class_name);
+
+        // A parameter into the AST walk basically, since we count code in there
+        state.stats.inventoryIndex = class_name;
+
+        // Want to make sure there actually is script in the field, other than comments
+        state.has_script = false;
+
+        // The true scope only matters for tracking libary methods, and looking for
+        // calls from ATF test steps to those methods. Therefore, we will just default to global 
+        state.currentScope = "global";
+
+        var record_name = "sys_variable_value" + "::" + var_id;
+
+        Inspector.scanScript(state, stats, script_string, record_name, scriptHandlers);
+
+        if (state.has_script == true) {
+            stats.modelsWithScript[class_name][document_key] = true;
+        }
+    }
+    catch (e) {
+        gs.error("Inspector.examineVariable exception sys_variable_value::" + var_id + ". Msg: " + e);
+    }
+
+};
+
+Inspector.isRecordUnderInspection = function (gr, class_name, name_field, isPackageScan) {
+    // Return true to continue inspection of record, false to abort
+    // This is deprecated. We will inspect everything they have packaged, to varying degrees of course.
+
+
+    //
+    // Validate record class is expected 
+    //
+
+    // Ensure we are expecting this type of record
+    if (!Spider.appFiles[class_name] && class_name != "wf_activity" && class_name != "sys_variable_value") {
+        if (isPackageScan)
+            gs.warn("_inspectRecord: unhandled record class was packaged: " + class_name + ":" + gr.sys_id);
+        if (isPackageScan)
+            gs.error("_inspectRecord: unhandled record class was processed: " + class_name + ":" + gr.sys_id);
+        return false; // This isn't an application file or something an application file requires
+    }
+
+    return true;
+
+};
+
+Inspector.isVariableUnderInspection = function (var_dictionary_id) {
+    // Return true to continue inspection of variable, false to abort
+    // gr must be of sys_variable_value class
+
+    // 
+    // Filter out variables that aren't being inspected
+    //
+
+    try {
+     
+
+        if (!Spider.scriptVariables[var_dictionary_id]) {
+            return false; // This isn't a scripted variable
+        }
+
+        if (Spider.scriptVariables[var_dictionary_id].scriptType != "script" &&
+            Spider.scriptVariables[var_dictionary_id].scriptType != "script_plain") {
+            // Not processing email scripts yet
+            return false;
+        }
+
+        // Only processing ActivityVariables at the moment
+        // Need to figure out how the flow designer/integration hub actually is put
+        // together
+        // Variable processing logic in _inspectRecord should deal with these types
+        if (Spider.scriptVariables[var_dictionary_id].label != "ActivityVariables") {
+            return false;
+        }
+    }
+    catch (e) {
+        gs.error("Inspector.isVariableUnderInspection: Unknown var_dictionary " + var_dictionary_id + ". Msg: " + e);
+        return false;
+    }
+    return true;
+};
+
+Inspector.isActive = function (gr, class_name) {
+    // Only call this if you know it knows how to test for active on your record type! 
+    // If we don't know how to test, we will say its NOT active
+
+
+    try {
+
+        if (class_name == "wf_activity") {
+
+            if (!gr.workflow_version) {
+                return false;
+            }
+            if (!gr.workflow_version.published) {
+                return false;
+            }
+        }
+        else if (class_name == "sys_variable_value") {
+
+            // Need to see if the model (a record) the variable belongs to is active
+            var table_name = gr.document.toString();
+            var model = new GlideRecord(table_name);
+            switch (table_name) {
+                case "wf_activity":
+                    if (!model.get(gr.document_key)) {
+                        return false;
+                    }
+                    if (!model.workflow_version) {
+                        return false;
+                    }
+                    if (!model.workflow_version.published) {
+                        return false;
+                    }
+                    break;
+
+                case "sys_hub_action_type_definition":
+                    if (!model.get(values.document_key)) {
+                        return false;
+                    }
+                    if (!model.active) {
+                        return false;
+                    }
+                    break;
+
+                default:
+                    // If we don't know how to handle it, return false;
+                    return false;
+                    break;
+
+            }
+        }
+        else if (gr.isValidField("active")) {
+            return gr.getValue("active");
+        }
+        else {
+            return false; // If we don't know how to check, return false
+        }
+    }
+    catch (e) {
+        gs.error("Inspector.isActive : " + e);
+        return false;
+    }
+
+    return true;
+};
+
+Inspector.scanScript = function (state, stats, script_string, record_name, ast_walk_handlers) {
+    // return true if script actually existed, false if not.
+
+    try {
+
+        if (!script_string) {
+            return false;
+        }
+
+        stats.CodeCharCount += script_string.length;
+        if (script_string.length <= 0) {
+            // Common now gs.debug("No script in " + gr[name_field]);
+            return false;
+        }
+
+        var comments = script_string.match(/\/\*[\s\S]*?\*\/|\/\/.*/g);
+        if (comments) {
+            for (var k = 0; k < comments.length; k++) {
+                stats.CommentCharCount += comments[k].length;
+            }
+        }
+        else {
+            stats.NoCommentFileCount++;
+        }
+
+        var tree = x_snc_dk_acorn.ASTree.parse(script_string);  // Make the Abstract Syntax Tree
+
+        // For dev purposes
+        if (state.dumpTree) {
+            gs.info(JSON.stringify(tree).replace(/,/g, '\n'));
+        }
+        x_snc_dk_acorn.ASTree.walk(tree, ast_walk_handlers, null, state);
+
+        // Be explicit (probably not necessary)
+        script_string = 0;
+        comments = 0;
+        tree = 0;
+    }
+    catch (e) {
+        gs.error("Inspector.scanScript: Processing exception in " + record_name + ". " + e);
+        // break;
+    }
+    return true;
+};
+
+Inspector.initializeInventoryLog = function (stats, state, class_name) {
+
+    // Initialize the inventory log if necessary
+    if (!stats.inventory[class_name]) {
+        stats.inventory[class_name] = {
+            count: 0,
+            scripted_count: 0,
+            global_count: 0,
+            type: "Config" // NoLowCode, ProCode, Test, Config or Custom
+        }; // initialize the record counter
+
+        // state is passed into AST walker, which counts lines of code
+        // and script side (number of nodes in the syntax tree)
+        state.stats.inventory[class_name] = {
+            LinesOfCode: 0,
+            ScriptSize: 0
+        };
+
+        if (Cat.isNoLowLogicRecord(class_name)) {
+            stats.inventory[class_name].type = "NoLowCode";
+        }
+        else if (Cat.isProLogicRecord(class_name)) {
+            stats.inventory[class_name].type = "ProCode";
+        }
+        else if (Cat.isTestRecord(class_name)) {
+            stats.inventory[class_name].type = "Test";
+        }
+        else if (!Spider.appFiles[class_name]) {
+            stats.inventory[class_name].type = "Custom";
+        }
+        // else (Detault type) is "Config" 
+    }
+}
+
+Inspector.logTargets = function (state, class_name, sys_id, api) {
+
+    // Log script library files that contain methods that can be called
+    // from other application files, and therefore can be whitebox tested
+    // (tested with a scripted ATF test.)
+    // Also log ATFTestSteps for next round of processing. 
+    switch (class_name) {
+        case "sys_script_include":
+            // "Script Include":
+            if (api)
+                state.targets.classes[api] = 1;
+            break;
+        case "sys_script":
+            // "Business Rule":
+            // TODO: how to log this - glolal methods?
+            break;
+        case "sys_atf_step":
+            // "Test Step":
+            // TODO: Check test scan logic
+            // ?We could pull scripts out? Value is in sys_variable_value record
+            // First sys_id in test step is for the step itself. Others are for the variables.
+            // Of course, this is handled by the caller, which uses a lazy RegEx fortunately.
+            state.targets.files.ATFTestSteps[sys_id] = 1;
+            break;
+
+        default:
+            break;
+    }
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>dave.knight</sys_created_by>
+        <sys_created_on>2018-10-22 21:53:03</sys_created_on>
+        <sys_customer_update>false</sys_customer_update>
+        <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
+        <sys_mod_count>19</sys_mod_count>
+        <sys_name>Inspector</sys_name>
+        <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
+        <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
+        <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
+        <sys_updated_by>dave.knight</sys_updated_by>
+        <sys_updated_on>2018-10-31 01:41:27</sys_updated_on>
+    </sys_script_include>
+</record_update>
