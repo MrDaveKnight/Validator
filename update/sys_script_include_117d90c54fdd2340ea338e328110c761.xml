@@ -75,13 +75,16 @@ Scanner.functionDeclarationHandler = function (node, state, ancestors) {
 Scanner.tryStatementHandler = function (node, state, ancestors) {
 
     try {
+
         state.stats.LinesOfCode++;
         state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
         state.has_script = true;
 
         // only count try/catch that does something in the catch
-        if (node.handler.body.body)
+        if (node.handler.body.body) {
             state.stats[node.type + "Count"]++;
+            state.stats.inventory[state.stats.inventoryIndex].try_catch++;
+        }
 
     } catch (e) {
         gs.error(e);
@@ -99,8 +102,9 @@ Scanner.variableDeclaratorHandler = function (node, state, ancestors) {
 
     try {
 
-        state.stats[node.type + "Count"]++;
+
         state.stats.LinesOfCode++;
+        state.stats[node.type + "Count"]++;
         state.stats.inventory[state.stats.inventoryIndex].LinesOfCode++;
         state.has_script = true;
 
@@ -141,7 +145,7 @@ Scanner.variableDeclaratorHandler = function (node, state, ancestors) {
         }
     } catch (ex) {
         gs.error("Bad node syntax in VariableDeclaration. " + ex);
-        gs.debug("Bad node: " + JSON.stringify(node));
+        gs.debug("Bad node is: " + JSON.stringify(node));
     }
 };
 
@@ -413,12 +417,14 @@ Scanner._callExpressionHandlerHelper = function (class_name, caller_name, functi
             function_name == "error") {
 
             state.stats.LogCallCount++;
+            state.stats.inventory[state.stats.inventoryIndex].logging++;
             gs.debug("Found GlideSystem logging. " + caller_name + "." + function_name);
 
         }
         else if (function_name == "debug") {
 
             state.stats.DebugCallCount++;
+            state.stats.inventory[state.stats.inventoryIndex].debugging++;
             gs.debug("Found GlideSystem debug. " + caller_name + "." + function_name);
 
         }
@@ -442,17 +448,18 @@ Scanner._callExpressionHandlerHelper = function (class_name, caller_name, functi
             function_name == "logEmerg") {
 
             state.stats.LogCallCount++;
+            state.stats.inventory[state.stats.inventoryIndex].logging++;
             gs.debug("Found GSLog logging. " + caller_name + "." + function_name);
 
         }
         else if (function_name == "logDebug") {
 
             state.stats.DebugCallCount++;
+            state.stats.inventory[state.stats.inventoryIndex].debugging++;
             gs.debug("Found GSLog debug. " + caller_name + "." + function_name);
 
         }
     }
-
 };
 
 Scanner._callExpressionHandlerHelperATF = function (caller_name, function_name, state, ancestors) {
@@ -668,7 +675,7 @@ Scanner._fullObjectName = function (object) {
         <sys_created_on>2018-10-20 03:25:43</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>117d90c54fdd2340ea338e328110c761</sys_id>
-        <sys_mod_count>2</sys_mod_count>
+        <sys_mod_count>3</sys_mod_count>
         <sys_name>Scanner</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -676,6 +683,6 @@ Scanner._fullObjectName = function (object) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_117d90c54fdd2340ea338e328110c761</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-29 17:19:54</sys_updated_on>
+        <sys_updated_on>2018-11-02 15:03:29</sys_updated_on>
     </sys_script_include>
 </record_update>

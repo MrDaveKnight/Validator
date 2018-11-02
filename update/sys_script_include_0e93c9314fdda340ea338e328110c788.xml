@@ -30,6 +30,18 @@ Output.prototype = {
         this.LogPercentage = 0.0;
         this.DebugPercentage = 0.0;
         this.ExceptionPercentage = 0.0;
+        this.LibCommentPct = 0.0;
+        this.LibLogPct = 0.0;
+        this.LibDebugPct = 0.0;
+        this.LibExceptionPct = 0.0;
+        this.LowCommentPct = 0.0;
+        this.LowLogPct = 0.0;
+        this.LowDebugPct = 0.0;
+        this.LowExceptionPct = 0.0;
+        this.ProCommentPct = 0.0;
+        this.ProLogPct = 0.0;
+        this.ProDebugPct = 0.0;
+        this.ProExceptionPct = 0.0;
         this.NumberOfScriptsTested = 0;
         this.NumberOfActiveScriptedTestSteps = 0;
         this.NumberOfActiveCodelessTestSteps = 0;
@@ -48,6 +60,26 @@ Output.prototype = {
         this.Test = 0;
         this.Custom = 0;
 
+        // Temporary rollups for percentage calculations
+        this.lowLinesOfCode = 0.0
+        this.lowCommentChars = 0.0;
+        this.lowCodeChars = 0.0;
+        this.lowLogCount = 0.0;
+        this.lowDebugCount = 0.0;
+        this.lowExceptionCount = 0.0;
+        this.proLinesOfCode = 0.0
+        this.proCommentChars = 0.0;
+        this.proCodeChars = 0.0;
+        this.proLogCount = 0.0;
+        this.proDebugCount = 0.0;
+        this.proExceptionCount = 0.0;
+        this.libLinesOfCode = 0.0
+        this.libCommentChars = 0.0;
+        this.libCodeChars = 0.0;
+        this.libLogCount = 0.0;
+        this.libDebugCount = 0.0;
+        this.libExceptionCount = 0.0;
+
         // Configuration records are, by definition, not logic records
         // Some may have some script in them, but they don't define major processes,
         // and are therefore configuration records
@@ -60,6 +92,7 @@ Output.prototype = {
         // Priimary application files
         this.ScriptIncludes = 0;
         this.BusinessRules = 0;
+        this.GlobalBusinessRules = 0;
         this.ScriptActions = 0;
         this.ScheduledJobs = 0;
         this.DynamicFilters = 0;
@@ -99,18 +132,27 @@ Output.prototype = {
 
             switch (this.stats.inventory[table_class_name].type) {
                 case "NoLowCode":
+                    // Record Metrics 
                     this.TotalLogic += this.stats.inventory[table_class_name].count;
                     this.LowCodeLogic += this.stats.inventory[table_class_name].scripted_count;
-                    this.NoCodeLogic += this.stats.inventory[table_class_name].count -
-                        this.stats.inventory[table_class_name].scripted_count;
+                    this.NoCodeLogic += (this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].scripted_count);
                     if (Cat.isWorkflowLogicRecord(table_class_name)) {
                         this.WorkflowLogic += this.stats.inventory[table_class_name].count;
                     }
                     this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
-                    this.ScopedLogic += this.stats.inventory[table_class_name].count -
-                        this.stats.inventory[table_class_name].global_count;
+                    this.ScopedLogic += (this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count);
+                    // Script Metrics
+                    this.lowLinesOfCode += this.state.stats.inventory[table_class_name].LinesOfCode;
+                    this.lowCommentChars += this.state.stats.inventory[table_class_name].commentChars;
+                    this.lowCodeChars += this.state.stats.inventory[table_class_name].codeChars
+                    this.lowLogCount += this.state.stats.inventory[table_class_name].logging;
+                    this.lowDebugCount += this.state.stats.inventory[table_class_name].debugging;
+                    this.lowExceptionCount += this.state.stats.inventory[table_class_name].try_catch;
                     break;
                 case "ProCode":
+                    // Record Metrics
                     this.TotalLogic += this.stats.inventory[table_class_name].count;
                     this.ProCodeLogic += this.stats.inventory[table_class_name].count;
                     if (Cat.isIntegrationLogicRecord(table_class_name)) {
@@ -123,8 +165,15 @@ Output.prototype = {
                         this.DiscoveryLogic += this.stats.inventory[table_class_name].count;
                     }
                     this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
-                    this.ScopedLogic += this.stats.inventory[table_class_name].count -
-                        this.stats.inventory[table_class_name].global_count;
+                    this.ScopedLogic += (this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count);
+                    // Script Metrics
+                    this.proLinesOfCode += this.state.stats.inventory[table_class_name].LinesOfCode;
+                    this.proCommentChars += this.state.stats.inventory[table_class_name].commentChars;
+                    this.proCodeChars += this.state.stats.inventory[table_class_name].codeChars;
+                    this.proLogCount += this.state.stats.inventory[table_class_name].logging;
+                    this.proDebugCount += this.state.stats.inventory[table_class_name].debugging;
+                    this.proExceptionCount += this.state.stats.inventory[table_class_name].try_catch;
                     break;
                 case "Test":
                     this.Test += this.stats.inventory[table_class_name].count;
@@ -135,8 +184,8 @@ Output.prototype = {
                 case "Config":
                     this.TotalConfig += this.stats.inventory[table_class_name].count;
                     this.GlobalConfig += this.stats.inventory[table_class_name].global_count;
-                    this.ScopedConfig += this.stats.inventory[table_class_name].count -
-                        this.stats.inventory[table_class_name].global_count;
+                    this.ScopedConfig += (this.stats.inventory[table_class_name].count -
+                        this.stats.inventory[table_class_name].global_count);
                     this.ScriptedConfig += this.stats.inventory[table_class_name].scripted_count;
                     if (Cat.isSchemaConfigRecord(table_class_name)) {
                         this.SchemaConfig += this.stats.inventory[table_class_name].count;
@@ -159,11 +208,11 @@ Output.prototype = {
             // Save our results to it.
             this._persistToDatabase();
         }
-		
-		// Send the results to the central metric repository
+
+        // Send the results to the central metric repository
         var transmitted = new x_snc_dk_valid_res.Transmitter().sendResults(this.state.resultsGR);
-		if (transmitted) {
-            this._markTransmitted ();
+        if (transmitted) {
+            this._markTransmitted();
         }
 
     },
@@ -210,16 +259,40 @@ Output.prototype = {
             gs.info("CodelessTestRatio: " + this.CodelessTestRatio);
         }
         if (this.stats.CodeCharCount > 0) {
+
+            // All Scripts
             this.CommentPercentage = ((this.stats.CommentCharCount / this.stats.CodeCharCount) * 100.0).toFixed(2);
             gs.info("CommentPercentage: " + this.CommentPercentage + "%");
         }
         if (this.state.stats.LinesOfCode > 0) {
+
+            // All Scripts
             this.LogPercentage = ((this.state.stats.LogCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
             gs.info("LogPercentage: " + this.LogPercentage + "%");
             this.DebugPercentage = ((this.state.stats.DebugCallCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
             gs.info("DebugPercentage: " + this.DebugPercentage + "%");
             this.ExceptionPercentage = ((this.state.stats.TryStatementCount / this.state.stats.LinesOfCode) * 100.0).toFixed(2);
             gs.info("ExceptionPercentage: " + this.ExceptionPercentage + "%");
+
+            // Procode, Lowcode and Library Scripts
+            var codeTypes = { pro: "Pro", low: "Low", lib: "Lib" }
+            for (type in codeTypes) {
+                if (this[type + "LinesOfCode"] > 0) {
+
+                    this[codeTypes[type] + "LogPct"] = ((this[type + "LogCount"] /
+                        this[type + "LinesOfCode"]) * 100.0).toFixed(2);
+                    gs.info("LogPct: " + this[codeTypes[type] + "LogPct"] + "%");
+                    this[codeTypes[type] + "DebugPct"] = ((this[type + "DebugCount"] /
+                        this[type + "LinesOfCode"]) * 100.0).toFixed(2);
+                    gs.info("DebugPct: " + this[codeTypes[type] + "DebugPct"] + "%");
+                    this[codeTypes[type] + "ExceptionPct"] = ((this[type + "ExceptionCount"] /
+                        this[type + "LinesOfCode"]) * 100.0).toFixed(2);
+                    gs.info("ExceptionPct: " + this[codeTypes[type] + "ExceptionPct"] + "%");
+                    this[codeTypes[type] + "CommentPct"] = ((this[type + "CommentChars"] /
+                        this[type + "CodeChars"]) * 100.0).toFixed(2);
+                    gs.info("CommentPct: " + this[codeTypes[type] + "CommentPct"] + "%");
+                }
+            }
         }
         else {
             gs.info("No executable lines of code scanned. Nothing to report on log, debug and exception handling percentages.");
@@ -263,7 +336,7 @@ Output.prototype = {
             this.state.resultsGR = new GlideRecord("x_snc_dk_valid_res_metrics");
             this.state.resultsGR.instance = "https://" + gs.getProperty("instance_name") + ".service-now.com";
             this.state.resultsGR.started = this.stats.startedAt;
-			this.state.resultsGR.run_description = this.stats.description;
+            this.state.resultsGR.run_description = this.stats.description;
         }
 
         var fields = new GlideRecord('sys_dictionary');
@@ -271,9 +344,8 @@ Output.prototype = {
         fields.query();
         while (fields.next()) {
 
-
-            // The labels of the fields in the table were configured to match
-            //	the variable names in here
+            // The labels of the fields in the table are configured to match
+            //	the variable names in this code 
             if (this[fields.column_label]) {
                 this.state.resultsGR[fields.element] = this[fields.column_label];
             }
@@ -285,8 +357,28 @@ Output.prototype = {
             }
         }
 
+        var allScriptsOutput = "";
+        for (var tableName in this.state.stats.inventory) {
+            allScriptsOutput += tableName + "\n";
+            allScriptsOutput += "\tLines Of Code: " +
+                this.state.stats.inventory[tableName].LinesOfCode + "\n";
+            allScriptsOutput += "\tAggregate Script Size: " +
+                this.state.stats.inventory[tableName].ScriptSize + "\n";
+            allScriptsOutput += "\tException Handler Count: " +
+                this.state.stats.inventory[tableName].try_catch + "\n";
+            allScriptsOutput += "\tLog Count: " +
+                this.state.stats.inventory[tableName].logging + "\n";
+            allScriptsOutput += "\tDebug Count: " +
+                this.state.stats.inventory[tableName].debugging + "\n";
+            allScriptsOutput += "\tComment Character Count: " +
+                this.state.stats.inventory[tableName].commentChars + "\n";
+            allScriptsOutput += "\tScript Type " +
+                this.state.stats.inventory[tableName].type + "\n\n";
+        }
+        this.state.resultsGR.all_scripts = allScriptsOutput;
+
         var allCountsOutput = "";
-        for (var tableName in this.stats.inventory) {
+        for (tableName in this.stats.inventory) {
             allCountsOutput += tableName + "\n";
             allCountsOutput += "\tCount: " + this.stats.inventory[tableName].count + "\n";
             allCountsOutput += "\tScripted Count: " +
@@ -304,8 +396,8 @@ Output.prototype = {
         gs.info("Duration (min): " + durationMS / (1000 * 60));
         this.state.resultsGR.package_format = this.state.format;
         this.state.resultsGR.package_query = this.state.query;
-		this.state.resultsGR.progress = 100;
-		this.state.resultsGR.status = this.state.status;
+        this.state.resultsGR.progress = 100; // 100%
+        this.state.resultsGR.status = this.state.status;
         this.state.resultsGR.checksum = this.stats.checksum >>> 0;
 
         if (resultsInitialized) {
@@ -320,15 +412,32 @@ Output.prototype = {
 
     _tallyPrimaryAppFiles: function (fileType) {
 
+
         switch (fileType) {
             case "sys_script_include":
                 //"Script Include":
                 this.ScriptIncludes = this.stats.inventory[fileType].count;
+                this.libLinesOfCode += this.state.stats.inventory[table_class_name].LinesOfCode;
+                this.libCommentChars += state.stats.inventory[fileType].commentChars;
+                this.libCodeChars += state.stats.inventory[fileType].codeChars;
+                this.libLogCount += state.stats.inventory[fileType].logging;
+                this.libDebugCount += state.stats.inventory[fileType].debugging;
+                this.libExceptionCount += state.stats.inventory[class_name].try_catch;
                 break;
             case "sys_script":
                 // "Business Rule":
                 this.BusinessRules = this.stats.inventory[fileType].count;
-                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount += this.stats.inventory[fileType].count;
+                break;
+            case "sys_script_global": // Artificial class name, treat like a Script Include
+                // "Global Business Rule":
+                this.GlobalBusinessRules = this.stats.inventory[fileType].count;
+                this.libLinesOfCode += this.state.stats.inventory[table_class_name].LinesOfCode;
+                this.libCommentChars += state.stats.inventory[fileType].commentChars;
+                this.libCodeChars += state.stats.inventory[fileType].codeChars;
+                this.libLogCount += state.stats.inventory[fileType].logging;
+                this.libDebugCount += state.stats.inventory[fileType].debugging;
+                this.libExceptionCount += state.stats.inventory[class_name].try_catch;
                 break;
             case "sysevent_script_action":
                 // "Script Action":
@@ -373,7 +482,7 @@ Output.prototype = {
             case "sys_script_client":
                 // "Client Script":
                 this.ClientScripts = this.stats.inventory[fileType].count;
-                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount += this.stats.inventory[fileType].count;
                 break;
             case "sys_script_fix":
                 // "Fix Script":
@@ -390,7 +499,7 @@ Output.prototype = {
             case "sys_dictionary":
                 // "Dictionary":
                 this.Dictionary = this.stats.inventory[fileType].count;
-                this.totalTestableFileCount = this.stats.inventory[fileType].count;
+                this.totalTestableFileCount += this.stats.inventory[fileType].count;
                 break;
 
             // ATF tests
@@ -411,12 +520,12 @@ Output.prototype = {
                 break;
         }
     },
-	
-	_markTransmitted: function() {
-        
+
+    _markTransmitted: function () {
+
         this.state.resultsGR.transmitted = true;
-        this.state.resultsGR.update(); 
-    
+        this.state.resultsGR.update();
+
     },
 
     type: 'Output'
@@ -427,7 +536,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>16</sys_mod_count>
+        <sys_mod_count>18</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -435,6 +544,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-31 17:23:47</sys_updated_on>
+        <sys_updated_on>2018-11-02 15:02:30</sys_updated_on>
     </sys_script_include>
 </record_update>

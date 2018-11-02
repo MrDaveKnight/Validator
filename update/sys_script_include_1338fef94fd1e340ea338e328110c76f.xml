@@ -43,6 +43,13 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
     // gr must be an Application File or descendent
 
     try {
+
+        // Artifical Class Name tracking
+        // Look for a global Business Rule. Needs to be treaded like a Script Include
+        if (gr.sys_class_name == "sys_script" && gr.collection == "global") {
+            class_name = "sys_script_global"; // This is a special class injected into the app file spider
+        }
+
         if (isPackageScan) {
             Inspector.logTargets(state, class_name, gr.sys_id.toString(), api);
         }
@@ -104,8 +111,7 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
             // Note that the business rule "global" is not its scope, but rather it's "table" assignment.
             // Global means it has no specific table. It is always available for execution, i.e. a
             // library method.
-            if (isPackageScan && (gr.sys_class_name == "sys_script_include" ||
-                (gr.sys_class_name == "sys_script" && gr.collection == "global"))) {
+            if (isPackageScan && (class_name == "sys_script_include" || class_name == "sys_script_global")) {
                 scriptHandlers.FunctionDeclaration = Scanner.functionDeclarationHandler;
                 scriptHandlers.FunctionExpression = Scanner.functionExpressionHandler;
             }
@@ -122,9 +128,9 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
                     continue; // only processing these right now
 
                 var script_string = gr[field].toString(); // To be under inspection, must be a script
-				if (!script_string)
+                if (!script_string)
                     continue;
-				
+
                 //
                 // Special handling of scripts in a "partial" format (something must be added
                 // in order to be parsed properly)
@@ -146,12 +152,12 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
                 else if (class_name == "sp_angular_provider" ||
                     class_name == "discovery_port_probe" ||
                     class_name == "discovery_sensor_multi_probe" ||
-                class_name == "ci_identifier") {
+                    class_name == "ci_identifier") {
                     if (field == "script") {
                         script_string = "var X = " + script_string;
                     }
                 }
-				
+
                 var record_name = class_name + "::" + gr[name_field].toString() + ":" + field;
 
                 Inspector.scanScript(state, stats, script_string, record_name, scriptHandlers);
@@ -179,10 +185,16 @@ Inspector.examinePayload = function (stats, state, payload) {
 
         // Get the class name (table name)
         var class_name = payloadXML.getNode("/record_update").getAttribute("table");
-        if (class_name == "sys_script_include") {
-            var x = 0;
+        var real_class_name = class_name; // In case we switch to the artificial class name, need this for XML lookups
+
+        // Artifical Class Name tracking
+        // Look for a global Business Rule. Needs to be treated like a Script Include
+        if (class_name == "sys_script") {
+            if ("global" == payloadXML.getNodeText("/record_update/sys_script/collection")) {
+                class_name = "sys_script_global"; // This is a special class injected into the app file spider
+            }
         }
-		
+
         Inspector.initializeInventoryLog(stats, state, class_name);
 
         // A parameter into the AST walk basically, since we count code in there
@@ -202,7 +214,7 @@ Inspector.examinePayload = function (stats, state, payload) {
         else {
             // This is an Application File
 
-            var scope = payloadXML.getNodeText("/record_update/" + class_name + "/sys_scope");
+            var scope = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_scope");
 
             if (!scope || scope == "global") {
                 stats.inventory[class_name].global_count++;
@@ -216,15 +228,15 @@ Inspector.examinePayload = function (stats, state, payload) {
                 // This is an "Active" record. Can be enabled or disabled.
 
                 // If disabled, don't process it for scripts
-                if ("true" != payloadXML.getNodeText("/record_update/" + class_name + "/active"))
+                if ("true" != payloadXML.getNodeText("/record_update/" + real_class_name + "/active"))
                     return;
 
             }
             // At this point we have the payload of an enabled "Active" record, or a "Passive" record,
             // which can't be disabled, so continue on ...
 
-            var api_name = payloadXML.getNodeText("/record_update/" + class_name + "/api_name");
-            var sys_id = payloadXML.getNodeText("/record_update/" + class_name + "/sys_id");
+            var api_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/api_name");
+            var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
             Inspector.logTargets(state, class_name, sys_id, api_name);
 
             if (Spider.appFiles[class_name].has_script) {
@@ -269,8 +281,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                 // Note that the business rule "global" is not its scope, but rather it's "table" assignment.
                 // Global means it has no specific table. It is always available for execution, i.e. a
                 // library method.
-                if (class_name == "sys_script_include" ||
-                    (class_name == "sys_script" && scope == "global")) {
+                if (class_name == "sys_script_include" || class_name == "sys_script_global") {
                     scriptHandlers.FunctionDeclaration = Scanner.functionDeclarationHandler;
                     scriptHandlers.FunctionExpression = Scanner.functionExpressionHandler;
                 }
@@ -286,10 +297,10 @@ Inspector.examinePayload = function (stats, state, payload) {
                     if (scriptFields[field] != "script" && scriptFields[field] != "script_plain")
                         continue; // only processing these right now
 
-                    var script = payloadXML.getNodeText("/record_update/" + class_name + "/" + field);
+                    var script = payloadXML.getNodeText("/record_update/" + real_class_name + "/" + field);
                     //var nameField = Spider.appFiles[class_name].name_field;
-                    //var name = payloadXML.getNodeText("/record_update/" + class_name + "/" + nameField);
-                    var record_name = class_name + "::" + sys_id;
+                    //var name = payloadXML.getNodeText("/record_update/" + real_class_name + "/" + nameField);
+                    var record_name = class_name + "::" + sys_id; // Sys ID is better for debug
 
                     Inspector.scanScript(state, stats, script, record_name, scriptHandlers);
 
@@ -470,8 +481,6 @@ Inspector.isVariableUnderInspection = function (var_dictionary_id) {
     //
 
     try {
-     
-
         if (!Spider.scriptVariables[var_dictionary_id]) {
             return false; // This isn't a scripted variable
         }
@@ -568,10 +577,12 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
     try {
 
         if (!script_string) {
+            // Nothing to do. The value was null.
             return false;
         }
 
         stats.CodeCharCount += script_string.length;
+        state.stats.inventory[state.stats.inventoryIndex].codeChars += script_string.length;
         if (script_string.length <= 0) {
             // Common now gs.debug("No script in " + gr[name_field]);
             return false;
@@ -581,6 +592,7 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
         if (comments) {
             for (var k = 0; k < comments.length; k++) {
                 stats.CommentCharCount += comments[k].length;
+                state.stats.inventory[state.stats.inventoryIndex].commentChars += comments[k].length;
             }
         }
         else {
@@ -593,6 +605,7 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
         if (state.dumpTree) {
             gs.info(JSON.stringify(tree).replace(/,/g, '\n'));
         }
+
         x_snc_dk_acorn.ASTree.walk(tree, ast_walk_handlers, null, state);
 
         // Be explicit (probably not necessary)
@@ -620,22 +633,33 @@ Inspector.initializeInventoryLog = function (stats, state, class_name) {
 
         // state is passed into AST walker, which counts lines of code
         // and script side (number of nodes in the syntax tree)
+        // (Camel case properties match result record field labels for auto load.)
         state.stats.inventory[class_name] = {
             LinesOfCode: 0,
-            ScriptSize: 0
+            ScriptSize: 0,
+            try_catch: 0,
+            logging: 0,
+            debugging: 0,
+            codeChars: 0,
+            commentChars: 0,
+            type: "Config"
         };
 
         if (Cat.isNoLowLogicRecord(class_name)) {
             stats.inventory[class_name].type = "NoLowCode";
+            state.stats.inventory[class_name].type = "LowCode"; // These stats are all script related, so drop the "No"
         }
         else if (Cat.isProLogicRecord(class_name)) {
             stats.inventory[class_name].type = "ProCode";
+            state.stats.inventory[class_name].type = "ProCode";
         }
         else if (Cat.isTestRecord(class_name)) {
             stats.inventory[class_name].type = "Test";
+            state.stats.inventory[class_name].type = "Test";
         }
         else if (!Spider.appFiles[class_name]) {
             stats.inventory[class_name].type = "Custom";
+            state.stats.inventory[class_name].type = "Custom";
         }
         // else (Detault type) is "Config" 
     }
@@ -653,9 +677,8 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
             if (api)
                 state.targets.classes[api] = 1;
             break;
-        case "sys_script":
-            // "Business Rule":
-            // TODO: how to log this - glolal methods?
+        case "sys_script_global":
+            // This is an artificial class! Global business rules came before script includes
             break;
         case "sys_atf_step":
             // "Test Step":
@@ -675,7 +698,7 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>19</sys_mod_count>
+        <sys_mod_count>20</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -683,6 +706,6 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-31 01:41:27</sys_updated_on>
+        <sys_updated_on>2018-11-02 15:08:26</sys_updated_on>
     </sys_script_include>
 </record_update>
