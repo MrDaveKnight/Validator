@@ -113,8 +113,9 @@ Main.prototype = {
             NoCommentFileCount: 0,
 
             // Atf 
-            NumberOfActiveCodelessTestSteps: 0,
-            NumberOfActiveScriptedTestSteps: 0,
+            ActiveCodelessSteps: 0,
+            ActiveScriptedSteps: 0,
+            LinesOfTestCode: 0,
 
             // Models (dynamically defined tables like Catalog Items for example) with 
             // scripted variables (the dynamic fields for the model) 
@@ -148,33 +149,33 @@ Main.prototype = {
             stats: {
                 ScriptSize: 0, // The number of nodes in the script's syntax tree. Counted by Acorn::Walker script include
                 LinesOfCode: 0,  // Javascript statements, variable declarations, assignment expressions and function calls
-                DebugCallCount: 0,
-                LogCallCount: 0,
-                GlobalLogCallCount: 0,
+                DebugCalls: 0,
+                LogCalls: 0,
+                GlobalLogCalls: 0,
 
                 // Statement counts
                 // Format: <AST Parser Node Type>Count
-                BlockStatementCount: 0,
-                ExpressionStatementCount: 0,
-                IfStatementCount: 0,
-                LabeledStatementCount: 0,
-                BreakStatementCount: 0,
-                ContinueStatementCount: 0,
-                WithStatementCount: 0,
-                SwitchStatementCount: 0,
-                ReturnStatementCount: 0,
-                ThrowStatementCount: 0,
-                TryStatementCount: 0,
-                WhileStatementCount: 0,
-                DoWhileStatementCount: 0,
-                ForStatementCount: 0,
-                ForOfStatementCount: 0,
-                LetStatementCount: 0,
-                DebuggerStatementCount: 0,
+                BlockStatements: 0,
+                ExpressionStatements: 0,
+                IfStatements: 0,
+                LabeledStatements: 0,
+                BreakStatements: 0,
+                ContinueStatements: 0,
+                WithStatements: 0,
+                SwitchStatements: 0,
+                ReturnStatements: 0,
+                ThrowStatements: 0,
+                TryStatements: 0,
+                WhileStatements: 0,
+                DoWhileStatements: 0,
+                ForStatements: 0,
+                ForOfStatements: 0,
+                LetStatements: 0,
+                DebuggerStatements: 0,
 
-                FounctionDeclarationCount: 0,
-                FunctionExpressionCount: 0,
-                VariableDeclaratorCount: 0,
+                FounctionDeclarations: 0,
+                FunctionExpressions: 0,
+                VariableDeclarators: 0,
 
                 inventory: {},      // Script metrics for each table class
                 inventoryIndex: ""  // Set this before each script scan
@@ -364,8 +365,14 @@ Main.prototype = {
         }
 
         // First, collect the ids of all active test scripts that were identified by the targeted
-        // updates/pluggins. Some may not have been active. Default their type to codeless, even
-        // though some may be scrpted. We will find the scripted ones shortly.
+        // updates/pluggins. Some may not have been active. This is because a step and it's parent
+        // test must be active, and during update set payload processing of a test step, we don't 
+        // bother to go find the update set payload of it's test. So ... we may have some deactived
+        // tests. We will find that now by getting the gliderecord which will make the test for 
+        // parent test status easy.
+        //
+        // For the active steps, default their type to codeless, even though some may be scripted. 
+        // We will find the scripted ones shortly.
         var atfStepsGR = new GlideRecord("sys_atf_step");
         atfStepsGR.addQuery("active", true);
         atfStepsGR.addQuery("test.active", true);
@@ -383,16 +390,53 @@ Main.prototype = {
 
         // Next, scan white-box (scripted) tests, and update the state of those steps in the active
         // targeted list. We want to differentiate between black-box codeless and white-box scripted 
-        // tests
+        // tests. We want to count lines of test code. Make sure we are counting the same things
+        // as the standard lines of code count.
 
         // AST walk handlers
         var atfScriptHandlers = {
             CallExpression: Scanner.callExpressionHandlerATF,
             VariableDeclarator: Scanner.variableDeclaratorHandlerATF,
-            AssignmentExpression: Scanner.assignmentExpressionHandlerATF
+            AssignmentExpression: Scanner.assignmentExpressionHandlerATF,
+            FunctionDeclaration: Scanner.statementHandlerATF,
+            FunctionExpression: Scanner.statementHandlerATF,
+            ExpressionStatement: Scanner.statementHandlerATF,
+            BlockStatement: Scanner.statementHandlerATF,
+            IfStatement: Scanner.statementHandlerATF,
+            LabeledStatement: Scanner.statementHandlerATF,
+            BreakStatement: Scanner.statementHandlerATF,
+            ContinueStatement: Scanner.statementHandlerATF,
+            WithStatement: Scanner.statementHandlerATF,
+            SwitchStatement: Scanner.statementHandlerATF,
+            ReturnStatement: Scanner.statementHandlerATF,
+            ThrowStatement: Scanner.statementHandlerATF,
+            TryStatement: Scanner.tryStatementHandlerATF,
+            WhileStatement: Scanner.statementHandlerATF,
+            DoWhileStatement: Scanner.statementHandlerATF,
+            ForStatement: Scanner.statementHandlerATF,
+            ForOfStatement: Scanner.statementHandlerATF,
+            LetStatement: Scanner.statementHandlerATF,
+            DebuggerStatement: Scanner.statementHandlerATF
         };
 
-        // Find all ATF configuration input variables of script type (script and script_plain currently.)
+        // Tests (sys_atf_test) are made up of Test Steps (sys_atf_step). The Steps are defined by 
+        // a Test Step Config record (sys_atf_step_config) which consists of a set of 
+        // Input Variables (atf_input_variable) and Output Variables (atf_output_variable),
+        // which define what each step expects for configuration and results, which
+        // can be passed to subsequent steps. 
+        // For scripted test steps, those Input Variables will delare that a script must
+        // be defined. Each atf_input_variable that delares a script will correspond to 
+        // a sys_variable_value associated with the sys_atf_step that contains the actual 
+        // test script. This is the script that will test library functions (Script Include and global
+        // business rules). 
+        // 
+        // Since all we care about is scripted tests, we can start by finding all the Input Variables
+        // defined to be scripts, and work our way back to the sys_variable_values that hold 
+        // the scripts. We don't actually care what test step, or test for that matter, the script
+        // in the sys_variable_value belongs to. We are just looking for code that executes
+        // calls against library methods. 
+        // 
+        // So, find all ATF configuration input variables of script type (script and script_plain currently.)
         var atfScriptTypesGR = new GlideRecord("atf_input_variable");
         atfScriptTypesGR.addActiveQuery();
         atfScriptTypesGR.addEncodedQuery("internal_typeLIKEscript");
@@ -400,22 +444,27 @@ Main.prototype = {
         while (atfScriptTypesGR.next()) {
 
 
+
             this.state.currentScope = "global";
+
+            // We need the actual name of the scope (not it's id), because
+            // we will use it as a method call prefix eventually.
             var scopeGR = new GlideRecord("sys_scope");
             if (scopeGR.get(atfScriptTypesGR.sys_scope)) {
                 this.state.currentScope = scopeGR.scope.toString();
             }
 
-            // TEST
-            // this.state.currentScope = "x_snc_dk_validator";
-
             // Find actual test step input variables that are configured as one of these script types, and scan ...
             var atfScriptsGR = new GlideRecord("sys_variable_value");
             atfScriptsGR.addQuery("document", "sys_atf_step");
             atfScriptsGR.addQuery("variable", atfScriptTypesGR.sys_id);
-            // atfScriptsGR.addQuery("document_key", "6bac16114f771380ea338e328110c7c5"); // TEST STEP
             atfScriptsGR.query();
             while (atfScriptsGR.next()) {
+
+                // We could check if each step actually has any script in it,
+                // but we don't need to since we use the raw LinesOfTestCode for our
+                // test metrics
+                // this.state.has_script = false;
 
                 // document_key is the sys_id of the test step, given that the document is a sys_atf_step.
                 if (!this.activeTargetedAtfSteps[atfScriptsGR.document_key])
@@ -426,15 +475,18 @@ Main.prototype = {
                 // The script is in the value field of an input variable. Since there is no name
                 // for the input variable, we will track it by GUID
                 this._scanAtfScript(atfScriptsGR, "document_key", "value", atfScriptHandlers);
+
+                // We could check for this.state.has_script == true, but we don't use it. If there
+                // are empty test steps, that will be reflected in the aggregate LinesOfTestCode number
             }
         }
 
         for (var i in this.activeTargetedAtfSteps) {
 
             if (this.activeTargetedAtfSteps[i] == this.SCRIPTED)
-                this.stats.NumberOfActiveScriptedTestSteps++;
+                this.stats.ActiveScriptedSteps++;
             else
-                this.stats.NumberOfActiveCodelessTestSteps++;
+                this.stats.ActiveCodelessSteps++;
         }
     },
 
@@ -716,8 +768,9 @@ Main.prototype = {
         var now = new GlideDateTime(gs.hoursAgo(0)).getNumericValue();
         if (now > this.progressUpdateMilestone) {
 
-            this.state.resultsGR.progress = (100.0 * this.itemsProcessed / this.itemsToProcess).toFixed(0);
-            //this.state.resultsGR.setWorkflow(false);
+            this.state.resultsGR.progress = (100.0 * this.itemsProcessed /
+                this.itemsToProcess).toFixed(0);
+            //this.state.resultsGR.setWorkflow(false); 
             this.state.resultsGR.update();
 
             this.progressUpdateMilestone = now + this.progressUpdatePeriod;
@@ -807,17 +860,13 @@ Main.prototype = {
     type: 'Main'
 };
 
-
-
-
-
 ]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>316</sys_mod_count>
+        <sys_mod_count>317</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
@@ -825,6 +874,6 @@ Main.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-02 14:54:16</sys_updated_on>
+        <sys_updated_on>2018-11-03 17:37:02</sys_updated_on>
     </sys_script_include>
 </record_update>
