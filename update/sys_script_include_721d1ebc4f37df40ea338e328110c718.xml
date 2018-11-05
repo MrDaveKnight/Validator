@@ -223,7 +223,6 @@ Main.prototype = {
 
     processAllApplicationFiles: function () {
 
-
         // AST walk handlers
         var scriptHandlers = {
             FunctionDeclaration: Scanner.statementHandler,
@@ -251,108 +250,119 @@ Main.prototype = {
             DebuggerStatement: Scanner.statementHandler
         };
 
+        try {
+            var limiter = 0;
+            var theLimit = 10000;
 
-        var limiter = 0;
-        var theLimit = 10000;
+            //
+            // Phase 1
+            //
+            // Process all Application File descendant records
+            //
 
-        //
-        // Phase 1
-        //
-        // Process all Application File descendant records
-        //
+            for (var table_class_name in Spider.appFiles) {
 
-        for (var table_class_name in Spider.appFiles) {
-
-            if (!gs.tableExists(table_class_name)) {
-                gs.error("processAllApplicationFiles: Spider identified a non-existent table, " + table_class_name + ". Ignoring.");
-                continue;
-            }
-
-            if (Spider.appFiles[table_class_name].is_restricted == true) {
-                continue; // TODO Can we do something about this?
-            }
-
-            if (++limiter > theLimit)
-                break;
-
-            var af = new GlideRecord(table_class_name);
-            af.addActiveQuery();  // Only interested in active records
-            af.query();
-            var limit = 0;  // for test
-            while (af.next()) {
-
-                // Only process records that are in this class, as opposed to descendents of this class.
-                // If the application file is a decendent of the class we are processing, 
-                // we will get around to looking at it when we scan it's class.
-                if (af.sys_class_name != table_class_name)
+                if (!gs.tableExists(table_class_name)) {
+                    gs.error("processAllApplicationFiles: Spider identified a non-existent table, " + table_class_name + ". Ignoring.");
                     continue;
+                }
 
-                Inspector.examineRecord(this.stats, this.state, af, table_class_name, Spider.appFiles[table_class_name].name_field, null, false);
+                if (Spider.appFiles[table_class_name].is_restricted == true) {
+                    continue; // TODO Can we do something about this?
+                }
+
+                if (++limiter > theLimit)
+                    break;
+
+                var af = new GlideRecord(table_class_name);
+                af.addActiveQuery();  // Only interested in active records
+                af.query();
+                var limit = 0;  // for test
+                while (af.next()) {
+
+                    // Only process records that are in this class, as opposed to descendents of this class.
+                    // If the application file is a decendent of the class we are processing, 
+                    // we will get around to looking at it when we scan it's class.
+                    if (af.sys_class_name != table_class_name)
+                        continue;
+
+                    Inspector.examineRecord(this.stats, this.state, af, table_class_name, Spider.appFiles[table_class_name].name_field, null, false);
+                }
+            }
+
+            //
+            // Phase 2
+            //
+            // Workflow Activities
+            //
+            // This is a special case. Workflow activity definitions are App Files, but 
+            // Workflow Activities themselves are not. Packaging is handled with the workflow itself, 
+            // which is the app file.
+            //
+            // Only collecting record counts. 
+            // Iterate over all workflow activities that are associated with a published workflow. 
+
+            limiter = 0;
+            var wfa = new GlideRecord("wf_activity");
+            wfa.query();
+            while (wfa.next()) {
+
+                if (++limiter > theLimit)
+                    break;
+
+                if (!Inspector.isActive(wfa, "wf_activity")) {
+                    continue;
+                }
+                Inspector.examineWorkflowActivity(this.stats, this.state,
+                    wfa.name.toString(), wfa.workflow_version.workflow.sys_scope.toString());
+            }
+
+            //
+            // Phase 3
+            //
+            // Process Variables
+            //
+            // Only collecting script metrics here!
+            // Iterate over all variable "values". The ones that are actually a script
+            // are identified by the Spider.scriptVariables object and will be deemed
+            // as "Under Inspection".
+            var v = new GlideRecord("sys_variable_value");
+            v.query();
+
+            limiter = 0;
+            theLimit = 1000;
+
+            while (v.next()) {
+
+                if (++limiter > theLimit)
+                    break;
+
+                var var_dictionary_id = v.variable.toString();
+                if (!Inspector.isVariableUnderInspection(var_dictionary_id)) {
+                    continue;
+                }
+                if (!Inspector.isActive(v, "sys_variable_value")) {
+                    continue;
+                }
+
+                var script_value = v.value.toString(); // To be under inspection, must be a script
+                var document_key = v.document_key.toString();
+                var var_id = v.sys_id.toString();
+
+                Inspector.examineVariable(this.stats, this.state, script_value,
+                    document_key, var_dictionary_id, var_id);
             }
         }
+        catch (e) {
+            gs.error("processAllApplicationFiles: Unhandled exception during scans. Aborting. Msg: " + e);
+            this.state.status = "Error";
+            this.state.resultsGR.update();
 
-        //
-        // Phase 2
-        //
-        // Workflow Activities
-        //
-        // This is a special case. Workflow activity definitions are App Files, but 
-        // Workflow Activities themselves are not. Packaging is handled with the workflow itself, 
-        // which is the app file.
-        //
-        // Only collecting record counts. 
-        // Iterate over all workflow activities that are associated with a published workflow. 
-
-        limiter = 0;
-        var wfa = new GlideRecord("wf_activity");
-        wfa.query();
-        while (wfa.next()) {
-
-            if (++limiter > theLimit)
-                break;
-
-            if (!Inspector.isActive(wfa, "wf_activity")) {
-                continue;
-            }
-            Inspector.examineWorkflowActivity(this.stats, this.state,
-                wfa.name.toString(), wfa.workflow_version.workflow.sys_scope.toString());
+            throw "exit";
         }
 
-        //
-        // Phase 3
-        //
-        // Process Variables
-        //
-        // Only collecting script metrics here!
-        // Iterate over all variable "values". The ones that are actually a script
-        // are identified by the Spider.scriptVariables object and will be deemed
-        // as "Under Inspection".
-        var v = new GlideRecord("sys_variable_value");
-        v.query();
+        this.state.status = "Complete";
 
-        limiter = 0;
-        theLimit = 1000;
-
-        while (v.next()) {
-
-            if (++limiter > theLimit)
-                break;
-
-            var var_dictionary_id = v.variable.toString();
-            if (!Inspector.isVariableUnderInspection(var_dictionary_id)) {
-                continue;
-            }
-            if (!Inspector.isActive(v, "sys_variable_value")) {
-                continue;
-            }
-
-            var script_value = v.value.toString(); // To be under inspection, must be a script
-            var document_key = v.document_key.toString();
-            var var_id = v.sys_id.toString();
-
-            Inspector.examineVariable(this.stats, this.state, script_value,
-                document_key, var_dictionary_id, var_id);
-        }
     },
 
 
@@ -612,6 +622,9 @@ Main.prototype = {
         }
         catch (e) {
             gs.error("processPackagedAppFiles: Unhandled exception during package scans. Aborting. Msg: " + e);
+			this.state.status = "Error";
+            this.state.resultsGR.update();
+			
             throw "exit";
         }
 
@@ -620,12 +633,14 @@ Main.prototype = {
         }
         catch (e) {
             gs.error("processPackagedAppFiles: Unhandled exception during ATF scans. Aborting. Msg: " + e);
+			this.state.status = "Error";
+            this.state.resultsGR.update();
             throw "exit";
         }
 
 
         // TODO - Add the Pass Fail logic
-        this.state.status = "Fail";
+        this.state.status = "Complete";
     },
 
     _processUpdateSet: function (update_set_id) {
@@ -866,7 +881,7 @@ Main.prototype = {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>317</sys_mod_count>
+        <sys_mod_count>318</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
@@ -874,6 +889,6 @@ Main.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-03 17:37:02</sys_updated_on>
+        <sys_updated_on>2018-11-04 20:38:53</sys_updated_on>
     </sys_script_include>
 </record_update>

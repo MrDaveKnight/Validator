@@ -184,16 +184,24 @@ Inspector.examinePayload = function (stats, state, payload) {
         payloadXML.parseXML(payload);
 
         // Get the class name (table name)
+        // Can be an attribute. Always will be first child of top node
         var class_name = payloadXML.getNode("/record_update").getAttribute("table");
-		
-		if (class_name == "") {
+
+        if (class_name == "") {
             class_name = payloadXML.getNode("/record_update").getFirstChild().getNodeName();
             if (class_name == "") {
                 gs.error("examinePayload: Can't find class name, aorting!");
                 return;
             }
         }
-		
+
+        // Choice is a special case!
+        if (class_name == "sys_choice") {
+            // This isn't an app file, but it packaged with an app file - sys_choice_set
+            // Chante the class over to sys_choice_set
+            class_name = "sys_choice_set";
+        }
+
         var real_class_name = class_name; // In case we switch to the artificial class name, need this for XML lookups
 
         // Artifical Class Name tracking
@@ -222,6 +230,28 @@ Inspector.examinePayload = function (stats, state, payload) {
         }
         else {
             // This is an Application File
+
+            // Special Cases
+            // For the following classes, there are extra levels we must go down into to find
+            // the information we need... 
+            //  - sys_documentation
+            //  - sys_ui_list
+            //  - sys_choice
+            //  - sys_ui_section 
+            // e.g. for Labels: /record_upate/sys_documenation/sys_documentation/<attributes>
+            if (class_name == "sys_documentation" ||
+                class_name == "sys_ui_list" ||
+                class_name == "sys_ui_section") {
+                real_class_name = real_class_name + "/" + real_class_name;
+            }
+            else if (class_name == "sys_choice_set") {
+                // This is the oddball - update set XML comes in as sys_choice, which is not
+                // an app file. All the choices in the payload are sys_choice/sys_choice/<...>
+                // The sets in that update set XML record are all the choices for a single
+                // field in a table. This info is in the sys_choice/sys_choice_set stanza.
+                // The set is an app file.
+                real_class_name = "sys_choice/sys_choice_set";
+            }
 
             var scope = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_scope");
 
@@ -558,6 +588,7 @@ Inspector.isActive = function (gr, class_name) {
                     }
                     break;
 
+
                 default:
                     // If we don't know how to handle it, return false;
                     return false;
@@ -565,11 +596,17 @@ Inspector.isActive = function (gr, class_name) {
 
             }
         }
+        else if (class_name == "sys_atf_step") {
+            // ensure step and parent test are both active
+            if (gr.active && gr.test.active) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
         else if (gr.isValidField("active")) {
             return gr.getValue("active");
-        }
-        else {
-            return false; // If we don't know how to check, return false
         }
     }
     catch (e) {
@@ -577,7 +614,7 @@ Inspector.isActive = function (gr, class_name) {
         return false;
     }
 
-    return true;
+    return true; // If we can't find the active flag, assume it can't be shut off.
 };
 
 Inspector.scanScript = function (state, stats, script_string, record_name, ast_walk_handlers) {
@@ -654,15 +691,15 @@ Inspector.initializeInventoryLog = function (stats, state, class_name) {
             type: "Config"
         };
 
-        if (Cat.isNoLowLogicRecord(class_name)) {
+        if (Catalog.isNoLowLogicRecord(class_name)) {
             stats.inventory[class_name].type = "NoLowCode";
             state.stats.inventory[class_name].type = "LowCode"; // These stats are all script related, so drop the "No"
         }
-        else if (Cat.isProLogicRecord(class_name)) {
+        else if (Catalog.isProLogicRecord(class_name)) {
             stats.inventory[class_name].type = "ProCode";
             state.stats.inventory[class_name].type = "ProCode";
         }
-        else if (Cat.isTestRecord(class_name)) {
+        else if (Catalog.isTestRecord(class_name)) {
             stats.inventory[class_name].type = "Test";
             state.stats.inventory[class_name].type = "Test";
         }
@@ -691,10 +728,6 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
             break;
         case "sys_atf_step":
             // "Test Step":
-            // TODO: Check test scan logic
-            // ?We could pull scripts out? Value is in sys_variable_value record
-            // First sys_id in test step is for the step itself. Others are for the variables.
-            // Of course, this is handled by the caller, which uses a lazy RegEx fortunately.
             state.targets.files.ATFTestSteps[sys_id] = 1;
             break;
 
@@ -707,7 +740,7 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>23</sys_mod_count>
+        <sys_mod_count>26</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -715,6 +748,6 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-02 19:02:33</sys_updated_on>
+        <sys_updated_on>2018-11-04 19:44:47</sys_updated_on>
     </sys_script_include>
 </record_update>

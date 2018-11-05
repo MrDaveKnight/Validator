@@ -21,6 +21,7 @@ Output.prototype = {
         // If one of the datastore labels doesn't match one of the results.[...] variable names,
         // create a temporary variable here that does, and we will set it before getting
         // to the DB dump
+        this.Result = "Fail";
         this.FileCount = 0;
         this.MethodCount = 0;
         this.ScriptTestCoverage = 0.0;
@@ -140,7 +141,7 @@ Output.prototype = {
                     this.LowCodeLogic += this.stats.inventory[table_class_name].scripted_count;
                     this.NoCodeLogic += (this.stats.inventory[table_class_name].count -
                         this.stats.inventory[table_class_name].scripted_count);
-                    if (Cat.isWorkflowLogicRecord(table_class_name)) {
+                    if (Catalog.isWorkflowLogicRecord(table_class_name)) {
                         this.WorkflowLogic += this.stats.inventory[table_class_name].count;
                     }
                     this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
@@ -158,13 +159,13 @@ Output.prototype = {
                     // Record Metrics
                     this.TotalLogic += this.stats.inventory[table_class_name].count;
                     this.ProCodeLogic += this.stats.inventory[table_class_name].count;
-                    if (Cat.isIntegrationLogicRecord(table_class_name)) {
+                    if (Catalog.isIntegrationLogicRecord(table_class_name)) {
                         this.IntegrationLogic += this.stats.inventory[table_class_name].count;
                     }
-                    if (Cat.isPortalLogicRecord(table_class_name)) {
+                    if (Catalog.isPortalLogicRecord(table_class_name)) {
                         this.PortalLogic += this.stats.inventory[table_class_name].count;
                     }
-                    if (Cat.isDiscoveryLogicRecord(table_class_name)) {
+                    if (Catalog.isDiscoveryLogicRecord(table_class_name)) {
                         this.DiscoveryLogic += this.stats.inventory[table_class_name].count;
                     }
                     this.GlobalLogic += this.stats.inventory[table_class_name].global_count;
@@ -187,7 +188,7 @@ Output.prototype = {
                     this.ScopedConfig += (this.stats.inventory[table_class_name].count -
                         this.stats.inventory[table_class_name].global_count);
                     this.ScriptedConfig += this.stats.inventory[table_class_name].scripted_count;
-                    if (Cat.isSchemaConfigRecord(table_class_name)) {
+                    if (Catalog.isSchemaConfigRecord(table_class_name)) {
                         this.SchemaConfig += this.stats.inventory[table_class_name].count;
                     }
                     break;
@@ -197,16 +198,25 @@ Output.prototype = {
 
             }
         }
+
+        // Logic and Config does not include ATF 
         var grandTotal = this.TotalLogic + this.TotalConfig;
         if (grandTotal > 0) {
             this.ScopedPackagingPct = (((this.ScopedLogic + this.ScopedConfig) /
                 grandTotal) * 100.0).toFixed(2);
         }
+
+        // Should do this here, but some calculations are being done in _printToLog()
+        // FIXME - move those calculations in here so I can call this!
+        //this._determineResult();
     },
 
     run: function () {
 
         this._printToLog();
+
+        // FIXME - this should be able to happen before print to log! 
+        this._determineResult();
 
         if (gs.tableExists("x_snc_dk_valid_res_metrics")) {
             // The Validator Results app is installed.
@@ -542,6 +552,76 @@ Output.prototype = {
 
     },
 
+    _determineResult: function () {
+        this.Result = "Pass";
+
+        // Simple, results must all meet minimum thresholds
+        if (this.CodelessTestRatio < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.codeless_test_ratio"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ScriptedTestRatio < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.scripted_test_ratio"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ScriptTestCoverage < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.script_test_coverage"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ScopedPackagingPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.scoped_package_pct"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LibExceptionPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.lib.exception"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LibLogPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.lib.log"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LibDebugPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.lib.debug"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LibCommentPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.lib.comment"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ProExceptionPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.pro.exception"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ProLogPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.pro.log"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ProDebugPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.pro.debug"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.ProCommentPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.pro.comment"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LowExceptionPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.exception"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LowLogPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.log"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LowDebugPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.debug"))) {
+            this.Result = "Fail";
+            return;
+        }
+        if (this.LowCommentPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.comment"))) {
+            this.Result = "Fail";
+            return;
+        }
+    },
+
     type: 'Output'
 };
 ]]></script>
@@ -550,7 +630,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>30</sys_mod_count>
+        <sys_mod_count>32</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -558,6 +638,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-03 22:55:59</sys_updated_on>
+        <sys_updated_on>2018-11-05 16:21:48</sys_updated_on>
     </sys_script_include>
 </record_update>

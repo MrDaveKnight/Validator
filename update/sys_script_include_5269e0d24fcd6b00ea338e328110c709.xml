@@ -2,14 +2,14 @@
     <sys_script_include action="INSERT_OR_UPDATE">
         <access>package_private</access>
         <active>true</active>
-        <api_name>x_snc_dk_validator.Cat</api_name>
+        <api_name>x_snc_dk_validator.Catalog</api_name>
         <caller_access/>
         <client_callable>false</client_callable>
         <description>Application file Categorization defintions and logic</description>
-        <name>Cat</name>
-        <script><![CDATA[var Cat = Class.create();
+        <name>Catalog</name>
+        <script><![CDATA[var Catalog = Class.create();
 
-Cat.isNoLowLogicRecord = function(tableName) {
+Catalog.isNoLowLogicRecord = function(tableName) {
 
 	var retVal = false;
 
@@ -29,10 +29,10 @@ Cat.isNoLowLogicRecord = function(tableName) {
 		case "sys_data_policy_rule": // "Data Policy"
 		case "sys_ui_action": // "UI Action" (server and client side)
 		case "sys_ui_policy_action": // "UI Policy"
-		case "catalog_ui_policy_action": // "Catalog UI Policy"
+		case "catalog_ui_policy_action": // "Catalogalog UI Policy"
 		case "expert_ui_policy_action": // "Wizard UI Policy"
 		case "sys_script_client": // "Client Script"
-		case "catalog_script_client": // "Catalog Client Script"
+		case "catalog_script_client": // "Catalogalog Client Script"
 		case "expert_script_client": // Wizard Client Script
 
 		case "wf_activity": // "Workflow Activity" 
@@ -49,7 +49,7 @@ Cat.isNoLowLogicRecord = function(tableName) {
 	return retVal;
 };
 
-Cat.isProLogicRecord = function(tableName) {
+Catalog.isProLogicRecord = function(tableName) {
 
 	var retVal = false;
 
@@ -109,7 +109,7 @@ Cat.isProLogicRecord = function(tableName) {
 	return retVal;
 };
 
-Cat.isIntegrationLogicRecord = function(tableName) {
+Catalog.isIntegrationLogicRecord = function(tableName) {
 	// In isProLogicRecord
 
 	var retVal = false;
@@ -131,7 +131,7 @@ Cat.isIntegrationLogicRecord = function(tableName) {
 	return retVal;
 };
 
-Cat.isPortalLogicRecord = function(tableName) {
+Catalog.isPortalLogicRecord = function(tableName) {
 	// In isProLogicRecord
 
 	var retVal = false;
@@ -153,7 +153,7 @@ Cat.isPortalLogicRecord = function(tableName) {
 };
 
 
-Cat.isDiscoveryLogicRecord = function(tableName) {
+Catalog.isDiscoveryLogicRecord = function(tableName) {
 	// In isProLogicRecord
 
 	var retVal = false;
@@ -179,7 +179,7 @@ Cat.isDiscoveryLogicRecord = function(tableName) {
 	return retVal;
 };
 
-Cat.isWorkflowLogicRecord = function(tableName) {
+Catalog.isWorkflowLogicRecord = function(tableName) {
 	// In isNoLowLogicRecord 
 
 	var retVal = false;
@@ -200,7 +200,7 @@ Cat.isWorkflowLogicRecord = function(tableName) {
 };
 
 
-Cat.isSchemaConfigRecord = function(tableName) {
+Catalog.isSchemaConfigRecord = function(tableName) {
 
 	var retVal = false;
 
@@ -220,7 +220,7 @@ Cat.isSchemaConfigRecord = function(tableName) {
 };
 
 
-Cat.isTestRecord = function(tableName) {
+Catalog.isTestRecord = function(tableName) {
 
 	var retVal = false;
 
@@ -230,6 +230,8 @@ Cat.isTestRecord = function(tableName) {
 		// ATF tests
 		case "sys_atf_step": // "Test Step":
 		case "sys_atf_test": // "Test":
+		case "sys_atf_test_suite": // "Test Suite":
+		case "sys_atf_test_suite_test": 
 			retVal = true;
 			break;
 
@@ -240,7 +242,7 @@ Cat.isTestRecord = function(tableName) {
 	return retVal;
 };
 
-Cat.isGlobal = function(record) {
+Catalog.isGlobal = function(record) {
 
 	// Assumes record is an ancenstor of sys_metadata
 	var record_scope = record.getValue("sys_scope");
@@ -248,11 +250,11 @@ Cat.isGlobal = function(record) {
 };
 
 
-Cat.prototype = {
+Catalog.prototype = {
     initialize: function() {
     },
 
-    type: 'Cat'
+    type: 'Catalog'
 };
 
 ]]></script>
@@ -261,14 +263,14 @@ Cat.prototype = {
         <sys_created_on>2018-10-11 14:33:43</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>5269e0d24fcd6b00ea338e328110c709</sys_id>
-        <sys_mod_count>4</sys_mod_count>
-        <sys_name>Cat</sys_name>
+        <sys_mod_count>5</sys_mod_count>
+        <sys_name>Catalog</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
         <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_5269e0d24fcd6b00ea338e328110c709</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-10-30 13:55:24</sys_updated_on>
+        <sys_updated_on>2018-11-04 17:17:18</sys_updated_on>
     </sys_script_include>
 </record_update>
