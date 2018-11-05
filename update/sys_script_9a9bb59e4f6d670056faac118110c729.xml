@@ -12,13 +12,13 @@
         <change_fields>false</change_fields>
         <client_callable>false</client_callable>
         <collection>x_snc_dk_valid_res_metrics</collection>
-        <condition>current.autorun == true &amp;&amp; current.type == "Packages"</condition>
+        <condition>current.autorun == true &amp;&amp; current.type == "AllAppFiles"</condition>
         <description/>
         <execute_function>false</execute_function>
         <filter_condition/>
         <is_rest>false</is_rest>
         <message/>
-        <name>Run Accelerator Validation</name>
+        <name>Run Instance Scan</name>
         <order>100</order>
         <priority>100</priority>
         <rest_method/>
@@ -30,31 +30,29 @@
         <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
 	
 	var validator = new x_snc_dk_validator.Main(current);
-	// Must pass strings into processPackagedAppFiles. They drive a switch statement 
-	// (Switch statements don't like GlideElements)
-	validator.processPackagedAppFiles(current.package_format.toString(), current.package_query.toString());
+	validator.processAllApplicationFiles();
 	validator.saveResults();
 	
 })(current, previous);]]></script>
         <sys_class_name>sys_script</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
-        <sys_created_on>2018-10-31 00:28:17</sys_created_on>
+        <sys_created_on>2018-11-05 16:56:40</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
-        <sys_id>e1c9cca44f216300ea338e328110c7ab</sys_id>
-        <sys_mod_count>5</sys_mod_count>
-        <sys_name>Run Accelerator Validation</sys_name>
+        <sys_id>9a9bb59e4f6d670056faac118110c729</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Run Instance Scan</sys_name>
         <sys_overrides/>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
         <sys_replace_on_upgrade>false</sys_replace_on_upgrade>
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
-        <sys_update_name>sys_script_e1c9cca44f216300ea338e328110c7ab</sys_update_name>
+        <sys_update_name>sys_script_9a9bb59e4f6d670056faac118110c729</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-05 16:55:19</sys_updated_on>
+        <sys_updated_on>2018-11-05 16:56:40</sys_updated_on>
         <template/>
         <when>async</when>
     </sys_script>
-    <sys_translated_text action="delete_multiple" query="documentkey=e1c9cca44f216300ea338e328110c7ab"/>
+    <sys_translated_text action="delete_multiple" query="documentkey=9a9bb59e4f6d670056faac118110c729"/>
 </record_update>
