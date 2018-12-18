@@ -202,19 +202,19 @@ Main.prototype = {
                 FunctionExpressions: 0,
                 VariableDeclarators: 0,
 
-                inventory: {},      // Script metrics for each table class
+                inventory: {},      // Script metrics for each table class. In state to pass into parser
                 inventoryIndex: "",  // Set this before each script scan
 
-                // For random inspection
-                // These will all be sys_metadata sys_ids in order to create links
-                inspectableLists: {
-                    active: false, 
-                    ootbScriptUpdates: [], // this requies hitting sys_update_version records unfortunately
-                    commentedScripts: [],
-                    loggingScripts: [],
-                    whiteBoxTests: [],
-                    blackBoxTests: []
-                }
+            },
+            // For random inspection
+            // These will all be sys_metadata sys_ids in order to create links
+            inspectableLists: {
+                active: false,
+                ootbScriptUpdates: [], // this requies hitting sys_update_version records unfortunately
+                commentedScripts: [],
+                loggingScripts: [],
+                whiteBoxTests: [],
+                blackBoxTests: []
             },
             targets: {
                 files: {
@@ -240,13 +240,14 @@ Main.prototype = {
         this.state.block_scope[0] = {};
 
         if (this.state.resultsGR) {
-            this.state.stats.inspectableLists.active = results.getValue("inspect");
+            this.state.inspectableLists.active = results.getValue("inspect"); // saved as a string
             this.state.resultsGR.status = this.state.status;
             this.state.resultsGR.started = this.stats.startedAt;
             this.state.resultsGR.progress = 0.0;
             //this.state.resultsGR.setWorkflow(false);
             this.state.resultsGR.update();
         }
+		gs.debug("Inspection flag is " + this.state.inspectableLists.active);
 
         // TODO Do property lookup for this
         //    this.state.dumpTree = true;
@@ -597,14 +598,14 @@ Main.prototype = {
             if (this.activeTargetedAtfSteps[i] == this.SCRIPTED) {
 
                 this.stats.ActiveScriptedSteps++;
-                if (state.stats.inspectableLists.active) {
-                    state.stats.inspectableLists.whiteBoxTests.push(i);
+                if (this.state.inspectableLists.active) {
+                    this.state.inspectableLists.whiteBoxTests.push(i);
                 }
             }
             else {
                 this.stats.ActiveCodelessSteps++;
-                if (state.stats.inspectableLists.active) {
-                    state.stats.inspectableLists.blackBoxTests.push(i);
+                if (this.state.inspectableLists.active) {
+                    this.state.inspectableLists.blackBoxTests.push(i);
                 }
             }
         }
@@ -994,7 +995,7 @@ Main.prototype = {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>336</sys_mod_count>
+        <sys_mod_count>340</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
@@ -1002,6 +1003,6 @@ Main.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-17 16:16:41</sys_updated_on>
+        <sys_updated_on>2018-12-18 03:07:04</sys_updated_on>
     </sys_script_include>
 </record_update>

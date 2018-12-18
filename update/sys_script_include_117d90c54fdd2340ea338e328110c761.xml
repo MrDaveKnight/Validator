@@ -432,8 +432,8 @@ Scanner._callExpressionHandlerHelper = function (class_name, caller_name, functi
             function_name == "warn" ||
             function_name == "error") {
 
-            if (state.stats.inspectableLists.active) {
-                state.stats.inspectableLists.loggingScripts.push(state.script_sys_id);
+            if (state.inspectableLists.active) {
+                state.inspectableLists.loggingScripts.push(state.script_sys_id);
             }
 
             state.stats.LogCalls++;
@@ -467,8 +467,8 @@ Scanner._callExpressionHandlerHelper = function (class_name, caller_name, functi
             function_name == "logAlert" ||
             function_name == "logEmerg") {
 
-            if (state.stats.inspectableLists.active) {
-                state.stats.inspectableLists.loggingScripts.push(state.script_sys_id);
+            if (state.inspectableLists.active) {
+                state.inspectableLists.loggingScripts.push(state.script_sys_id);
             }
 
             state.stats.LogCalls++;
@@ -699,7 +699,7 @@ Scanner._fullObjectName = function (object) {
         <sys_created_on>2018-10-20 03:25:43</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>117d90c54fdd2340ea338e328110c761</sys_id>
-        <sys_mod_count>5</sys_mod_count>
+        <sys_mod_count>6</sys_mod_count>
         <sys_name>Scanner</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -707,6 +707,6 @@ Scanner._fullObjectName = function (object) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_117d90c54fdd2340ea338e328110c761</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-17 16:31:56</sys_updated_on>
+        <sys_updated_on>2018-12-18 02:09:53</sys_updated_on>
     </sys_script_include>
 </record_update>

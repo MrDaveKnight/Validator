@@ -350,7 +350,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                 if (state.has_script == true) {
                     stats.inventory[class_name].scripted_count++;
 
-                    if (state.stats.inspectableLists.active) {
+                    if (state.inspectableLists.active) {
 
 
                         //
@@ -382,7 +382,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                         }
                         if (!Inspector.isCustomAppFile(update_name, scope_name)) {
                             // This is an update to an OOTB file (since it is not custom)
-                            state.stats.inspectableLists.ootbScriptUpdates.push(state.script_sys_id);
+                            state.inspectableLists.ootbScriptUpdates.push(state.script_sys_id);
                         }
                     }
                 }
@@ -676,8 +676,8 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
         var comments = script_string.match(/\/\*[\s\S]*?\*\/|\/\/.*/g);
         if (comments) {
 
-            if (state.stats.inspectableLists.active) {
-                state.stats.inspectableLists.commentedScripts.push(state.script_sys_id);
+            if (state.inspectableLists.active) {
+                state.inspectableLists.commentedScripts.push(state.script_sys_id);
             }
 
             for (var k = 0; k < comments.length; k++) {
@@ -827,7 +827,7 @@ Inspector.isCustomAppFile = function(sys_update_name, scope_name) {
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>30</sys_mod_count>
+        <sys_mod_count>31</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -835,6 +835,6 @@ Inspector.isCustomAppFile = function(sys_update_name, scope_name) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-17 16:25:33</sys_updated_on>
+        <sys_updated_on>2018-12-18 02:08:39</sys_updated_on>
     </sys_script_include>
 </record_update>
