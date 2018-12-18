@@ -423,9 +423,14 @@ Output.prototype = {
         this.state.resultsGR.package_query = this.state.query;
         this.state.resultsGR.progress = 100; // 100%
         this.state.resultsGR.status = this.state.status;
-		if (this.state.processingPackages)
-			this.state.resultsGR.validation_result = this.Result;
+        if (this.state.processingPackages)
+            this.state.resultsGR.validation_result = this.Result;
         this.state.resultsGR.checksum = this.stats.checksum >>> 0;
+
+        // Random artifacts for inspection
+        if (state.stats.inspectableLists.active) {
+            this._persistRandomSampleSets();
+        }
 
         if (resultsInitialized) {
             // I know this will insert if record didn't exist. Call me paranoid.
@@ -619,9 +624,118 @@ Output.prototype = {
             return;
         }
         if (this.LowCommentPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.comment"))) {
-            this.Result = "Fail";
-            return;
+            this.Result = "Fail"; 
+			return;
         }
+    },
+
+    _persistRandomSampleSets: function () {
+
+        function genRandomSampleIndex(sample_indexes, set_size) {
+            var maxLoop = 100;
+            var retval = 0;
+            do {
+                maxLoop--;
+                retval = Math.floor(Math.random() * set_size);
+            }
+            while (sample_indexes[retval] && maxLoop > 0);
+
+            sample_indexes[retval] = true;
+            return retval;
+        }
+
+        function saveSet(set_name, field_name_prefix) {
+
+            function getItemURL(sys_id) {
+                var af = new GlideRecord("sys_metadata");
+                if (af.get(sys_id)) {
+
+                    var url = "https://" + gs.getProperty("instance_name") + ".service-now.com/nav_to.do?uri=" +
+                        af.sys_class_name.toString() +
+                        ".do?sys_id=" +
+                        sys_id;
+
+                    return url;
+                }
+                return "";
+
+            }
+
+            try {
+
+                var sampleIndexes = {}; // needed to make sure all sample points are unique
+				var url = "";
+                var i = 0; // index for save loops
+                var setSize = this.stats.inspectableLists[set_name].length;
+                if (setSize <= this.stats.inspectionSampleSize) {
+
+                    //
+                    // Save out everything we got
+                    //
+
+                    for (i = 0; i < setSize; i++) {
+
+                        url = getItemURL(this.stats.inspectableLists[set_name][i]);
+
+                        // GlideRecord file names start with 1, not 0
+                        // GlideRecord field naming convension is <field>_<index>, index = 1..max
+                        this.stats.resultsGR[field_name_prefix + "_" + (i + 1).toString()] = url;
+                    }
+
+                }
+                else if (setSize < 2 * this.stats.inspectionSampleSize) {
+
+                    // 
+                    // Select what not save out
+                    //
+
+
+                    for (i = 0; i < setSize - this.stats.inspectionSampleSize; i++) {
+                        genRandomSampleIndex(sampleIndexes, setSize);
+                    }
+                    var j = 1; // suffix for gliderecord field name
+                    for (i = 0; i < this.stats.inspectionSampleSize; i++) {
+
+                        if (sampleIndexes[i]) {
+                            continue;
+                        }
+
+                        url = getItemURL(this.stats.inspectableLists[set_name][i]);
+
+                        // GlideRecord file names start with 1, not 0
+                        this.stats.resultsGR[field_name_prefix + "_" + j.toString()] = url;
+                        j++;
+                    }
+
+                }
+                else {
+
+                    // 
+                    // Select what to save out
+                    //
+
+                    for (i = 0; i < this.stats.inspectionSampleSize; i++) {
+
+                        var selectionIdx = genRandomSampleIndex(sampleIndexes, setSize);
+                        url = getItemURL(this.stats.inspectableLists[set_name][selectionIdx]);
+
+                        // GlideRecord file names start with 1, not 0
+                        this.stats.resultsGR[field_name_prefix + "_" + (i + 1).toString()] = url;
+                    }
+                }
+            }
+            catch (e) {
+                gs.error("Failure saving inspection items");
+            }
+        }
+
+        // Naming Convension:
+        // These field name prefixes MUST MATCH what is in the results GlideRecord schema
+        saveSet("ootbScriptUpdates", "script");
+        saveSet("commentedScripts", "commented");
+        saveSet("loggingScripts", "logging");
+        saveSet("whiteBoxTests", "scripted_test");
+        saveSet("blackBoxTests", "test");
     },
 
     type: 'Output'
@@ -632,7 +746,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>34</sys_mod_count>
+        <sys_mod_count>38</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -640,6 +754,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-05 21:18:41</sys_updated_on>
+        <sys_updated_on>2018-12-17 16:33:38</sys_updated_on>
     </sys_script_include>
 </record_update>

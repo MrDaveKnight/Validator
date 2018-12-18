@@ -16,7 +16,6 @@
 // It will take inventory of both record and script metrics 
 //
 
-
 var Inspector = Class.create();
 Inspector.prototype = {
     initialize: function () {
@@ -198,7 +197,7 @@ Inspector.examinePayload = function (stats, state, payload) {
         // Choice is a special case!
         if (class_name == "sys_choice") {
             // This isn't an app file, but it packaged with an app file - sys_choice_set
-            // Chante the class over to sys_choice_set
+            // Change the class over to sys_choice_set
             class_name = "sys_choice_set";
         }
 
@@ -211,6 +210,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                 class_name = "sys_script_global"; // This is a special class injected into the app file spider
             }
         }
+
 
         Inspector.initializeInventoryLog(stats, state, class_name);
 
@@ -278,7 +278,9 @@ Inspector.examinePayload = function (stats, state, payload) {
             var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
             Inspector.logTargets(state, class_name, sys_id, api_name);
 
-            if (Spider.appFiles[class_name].has_script) {
+            if (Spider.appFiles[class_name].has_script && class_name.indexOf("sys_atf") == -1) {
+                // Remember to SKIP ATF stuff! We process that later.
+                // Don't want to add test LOC into total counts
 
                 // Get script fields in this application file
                 var scriptFields = Spider.appFiles[class_name].script_fields;
@@ -330,6 +332,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                 // That is what we are tracking. The number of application files with 
                 // executable script 
                 state.has_script = false;
+                state.script_sys_id = sys_id;
 
                 for (var field in scriptFields) {
 
@@ -346,6 +349,42 @@ Inspector.examinePayload = function (stats, state, payload) {
                 }
                 if (state.has_script == true) {
                     stats.inventory[class_name].scripted_count++;
+
+                    if (state.stats.inspectableLists.active) {
+
+
+                        //
+                        // Find OOTB scripts that have been modified!
+                        //
+
+                        if (!state.script_sys_id) {
+                            ge.error("Script scanning did not initialized script_sys_id!");
+                        }
+
+                        var update_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_update_name");
+                        var package_node = payloadXML.getNode("/record_update/" + real_class_name + "/sys_package");
+                        
+                        var scope_name = state.currentScope;
+                        if (scope_name == "global") {
+                            var a = package_node.getAttribute("display_value");
+                            if (!a) {
+                                gs.error("The semantics of the " + real_class_name + "/sys_package attributes have changed!");
+                                gs.error("Expected a display_value attribute for a global " + real_class_name + "/sys_package");
+                            }
+                            scope_name = "Applied Update Set: " + package_node.getAttribute("display_value");
+                        }
+                        else {
+                            scope_name = package_node.getAttribute("source");
+                            if (!scope_name) {
+                                gs.error("The semantics of the " + real_class_name + "/sys_package attributes have changed!");
+                                gs.error("Expected a non-global source attribute for " + real_class_name + "/sys_package");
+                            }
+                        }
+                        if (!Inspector.isCustomAppFile(update_name, scope_name)) {
+                            // This is an update to an OOTB file (since it is not custom)
+                            state.stats.inspectableLists.ootbScriptUpdates.push(state.script_sys_id);
+                        }
+                    }
                 }
             }
         }
@@ -636,6 +675,11 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
 
         var comments = script_string.match(/\/\*[\s\S]*?\*\/|\/\/.*/g);
         if (comments) {
+
+            if (state.stats.inspectableLists.active) {
+                state.stats.inspectableLists.commentedScripts.push(state.script_sys_id);
+            }
+
             for (var k = 0; k < comments.length; k++) {
                 stats.CommentCharCount += comments[k].length;
                 state.stats.inventory[state.stats.inventoryIndex].commentChars += comments[k].length;
@@ -709,7 +753,7 @@ Inspector.initializeInventoryLog = function (stats, state, class_name) {
         }
         // else (Detault type) is "Config" 
     }
-}
+};
 
 Inspector.logTargets = function (state, class_name, sys_id, api) {
 
@@ -734,13 +778,56 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         default:
             break;
     }
+};
+
+
+Inspector.isCustomAppFile = function(sys_update_name, scope_name) {
+    // 1st input parm is the sys_update_name field in a sys_metadata record
+    // 2nd input parm, scope_name, can be one of two things
+    // - for private scope, the sys_metadata.sys_scope.scope field.
+    //   In an update record, it is also the "source" attribute in the sys_package field, which 
+    //   has two attributes: display_value and source.  
+    //   In an sys_metadata record, it should be the sys_upgrade_history.to_version field
+    // - for global named scope, the sys_metadata.sys_scope.name field (since scope is "global").
+    //   In an update record, it is also the "display_value" attribute in the sys_package field
+    //   which should be in the sys_upgrade_history.to_version field as "Applied Update Set: <name>"
+    //   for an upgrade update.
+    // This logic derives from ScriptInclude UpdateVersionAPI
+
+    var versions = new GlideRecord('sys_update_version');
+    versions.addQuery('name', sys_update_name);
+    versions.query();
+
+    // If a file has 0 versions, then not a customer file.
+    if (versions.getRowCount() === 0)
+        return false;
+
+    // If there exists a named version of source sys_upgrade_history or sys_store_app, 
+    // then not a customer file, with noted GIT exception.
+    while (versions.next()) {
+        var source = versions.source_table.toString();
+        if (source === 'sys_upgrade_history' || source === 'sys_store_app') {
+            // If in an upgrade that is NOT the same as its scope, or a store app, this is OOTB.
+            // When an app is installed from GIT, the source is an upgrade with the same name as the scope
+            if (source === 'sys_upgrade_history') {
+                if (source != scope_name) {
+                    return false; // This is an OOTB app file
+                }
+                else {
+                    return true; // This was installed via GIT, which means its custom
+                }
+            }
+        }
+    }
+
+    return true;
 };]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>26</sys_mod_count>
+        <sys_mod_count>30</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -748,6 +835,6 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-04 19:44:47</sys_updated_on>
+        <sys_updated_on>2018-12-17 16:25:33</sys_updated_on>
     </sys_script_include>
 </record_update>
