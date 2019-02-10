@@ -396,6 +396,8 @@ Output.prototype = {
                     this.state.stats.inventory[tableName].logging + "\n";
                 allScriptsOutput += "\tDebug Count: " +
                     this.state.stats.inventory[tableName].debugging + "\n";
+				allScriptsOutput += "\tComment Character Count: " +
+                    this.state.stats.inventory[tableName].commentChars + "\n";
                 allScriptsOutput += "\tScript Type: " +
                     this.state.stats.inventory[tableName].type + "\n\n";
             }
@@ -747,7 +749,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>43</sys_mod_count>
+        <sys_mod_count>44</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -755,6 +757,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-18 03:36:18</sys_updated_on>
+        <sys_updated_on>2019-02-10 17:58:01</sys_updated_on>
     </sys_script_include>
 </record_update>

@@ -34,6 +34,9 @@ Catalog.isNoLowLogicRecord = function(tableName) {
 		case "sys_script_client": // "Client Script"
 		case "catalog_script_client": // "Catalogalog Client Script"
 		case "expert_script_client": // Wizard Client Script
+		case "metric_definition": // "Metric"
+		case "sys_transform_entry": // Transform map field
+		case "sys_transform_map": // Transform map  
 
 		case "wf_activity": // "Workflow Activity" 
 		case "sys_hub_action_instance": // "Flow Designer" or "Integration Hub"
@@ -57,7 +60,6 @@ Catalog.isProLogicRecord = function(tableName) {
 	switch (tableName) {
 
 		case "sys_script_include": // "Script Include"
-		case "metric_definition	": // "Metric"
 		case "sys_transform_script": // "Transform Script"
 		case "sys_script_fix": // "Fix Script"
 		case "sys_processor": // "Processor":
@@ -263,7 +265,7 @@ Catalog.prototype = {
         <sys_created_on>2018-10-11 14:33:43</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>5269e0d24fcd6b00ea338e328110c709</sys_id>
-        <sys_mod_count>5</sys_mod_count>
+        <sys_mod_count>7</sys_mod_count>
         <sys_name>Catalog</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -271,6 +273,6 @@ Catalog.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_5269e0d24fcd6b00ea338e328110c709</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-11-04 17:17:18</sys_updated_on>
+        <sys_updated_on>2019-02-10 20:23:52</sys_updated_on>
     </sys_script_include>
 </record_update>

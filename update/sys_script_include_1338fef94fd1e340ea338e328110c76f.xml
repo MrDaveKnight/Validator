@@ -129,6 +129,27 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
                 var script_string = gr[field].toString(); // To be under inspection, must be a script
                 if (!script_string)
                     continue;
+				
+				// Need to filter out processing of scripts that are not active, expecially
+				// given the fact that many scripts have default script and comments that should
+				// not be counted
+				if ("sys_dictionary" == class_name && "calculation" == field && !gr.virtual) { // DAK
+					continue;
+				}
+				else if ("metric_definition" == class_name && gr.type != "calculation") {
+					// If not calculation, this is no code field duration
+					continue;
+				}
+				else if ("sys_ui_policy" == class_name && !gr.run_scripts) {
+					// Normally no code in UI Policy
+					continue;
+				}
+				else if ("sys_transform_entry" == class_name && !gr.use_source_script) {
+					continue;
+				}
+				else if ("sys_transform_map" == class_name && !gr.run_script) {
+					continue;
+				}
 
                 //
                 // Special handling of scripts in a "partial" format (something must be added
@@ -271,6 +292,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                     return;
 
             }
+			
             // At this point we have the payload of an enabled "Active" record, or a "Passive" record,
             // which can't be disabled, so continue on ...
 
@@ -334,10 +356,55 @@ Inspector.examinePayload = function (stats, state, payload) {
                 state.has_script = false;
                 state.script_sys_id = sys_id;
 
+				var scriptsRunning = false;
                 for (var field in scriptFields) {
 
                     if (scriptFields[field] != "script" && scriptFields[field] != "script_plain")
                         continue; // only processing these right now
+					
+					// Need to filter out processing of scripts that are not active, expecially
+					// given the fact that many scripts have default script and comments that should
+					// not be counted
+					if ("sys_dictionary" == class_name && "calculation" == field) { // DAK
+						var isCalculated = payloadXML.getNodeText("/record_update/" + 
+																  real_class_name + "/virtual");
+						if (isCalculated != "true")
+							continue;
+					}
+					else if ("metric_definition" == class_name) {
+						var type = payloadXML.getNodeText("/record_update/" + 
+																  real_class_name + "/type");
+						
+						if (type != "calculation") {
+							// If not calculation, this is no code field duration
+							continue;
+						}
+					}
+					else if ("sys_ui_policy" == class_name) {
+						
+						scriptsRunning =  payloadXML.getNodeText("/record_update/" + 
+																  real_class_name + "/run_scripts");
+						if (scriptsRunning != "true") {
+							// Normally no code in UI Policy
+							continue;
+						}
+					}
+					else if ("sys_transform_entry" == class_name) {
+						
+						scriptsRunning =  payloadXML.getNodeText("/record_update/" + 
+																  real_class_name + "/use_source_script");
+						if (scriptsRunning != "true") {
+							continue;
+						}
+					}
+					else if ("sys_transform_map" == class_name) {
+						
+						scriptsRunning =  payloadXML.getNodeText("/record_update/" + 
+																  real_class_name + "/run_script");
+						if (scriptsRunning != "true") {
+							continue;
+						}
+					}
 
                     var script = payloadXML.getNodeText("/record_update/" + real_class_name + "/" + field);
                     //var nameField = Spider.appFiles[class_name].name_field;
@@ -675,6 +742,8 @@ Inspector.scanScript = function (state, stats, script_string, record_name, ast_w
 
         var comments = script_string.match(/\/\*[\s\S]*?\*\/|\/\/.*/g);
         if (comments) {
+			
+			
 
             if (state.inspectableLists.active) {
                 state.inspectableLists.commentedScripts.push(state.script_sys_id);
@@ -834,7 +903,7 @@ Inspector.isCustomAppFile = function(sys_update_name, scope_name) {
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>32</sys_mod_count>
+        <sys_mod_count>40</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -842,6 +911,6 @@ Inspector.isCustomAppFile = function(sys_update_name, scope_name) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-18 15:30:29</sys_updated_on>
+        <sys_updated_on>2019-02-10 20:07:45</sys_updated_on>
     </sys_script_include>
 </record_update>
