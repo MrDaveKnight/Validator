@@ -13,6 +13,8 @@ Output.prototype = {
 
         this.stats = stats;
         this.state = state;
+        this.gaugeLimit = 200.0;
+
 
         // Staging variables for output/persistence.
         // The datastore field labels match the labels assigned to each metric,
@@ -22,6 +24,8 @@ Output.prototype = {
         // create a temporary variable here that does, and we will set it before getting
         // to the DB dump
         this.Result = "Fail";
+		this.TableTestCoverage = 42.4; // FIXME
+        this.StateTestCoverage = 23.6; // FIXME 
         this.FileCount = 0;
         this.MethodCount = 0;
         this.ScriptTestCoverage = 0.0;
@@ -191,6 +195,8 @@ Output.prototype = {
                     if (Catalog.isSchemaConfigRecord(table_class_name)) {
                         this.SchemaConfig += this.stats.inventory[table_class_name].count;
                     }
+                    break;
+                case "Test":
                     break;
                 default:
                     gs.error("Bogus inventory detected for " + table_class_name + "!");
@@ -396,7 +402,7 @@ Output.prototype = {
                     this.state.stats.inventory[tableName].logging + "\n";
                 allScriptsOutput += "\tDebug Count: " +
                     this.state.stats.inventory[tableName].debugging + "\n";
-				allScriptsOutput += "\tComment Character Count: " +
+                allScriptsOutput += "\tComment Character Count: " +
                     this.state.stats.inventory[tableName].commentChars + "\n";
                 allScriptsOutput += "\tScript Type: " +
                     this.state.stats.inventory[tableName].type + "\n\n";
@@ -425,8 +431,10 @@ Output.prototype = {
         this.state.resultsGR.package_query = this.state.query;
         this.state.resultsGR.progress = 100; // 100%
         this.state.resultsGR.status = this.state.status;
-        if (this.state.processingPackages)
+        if (this.state.processingPackages) {
             this.state.resultsGR.validation_result = this.Result;
+            this._setAttainmentGuages();
+        }
         this.state.resultsGR.checksum = this.stats.checksum >>> 0;
 
         // Random artifacts for inspection
@@ -561,10 +569,59 @@ Output.prototype = {
 
     },
 
+    _calculateAttainment: function (value, criterion_property) {
+        var ret = 0.0;
+        var criterion = parseFloat(gs.getProperty(criterion_property));
+        if (value > 0.0 && criterion > 0.0) {
+            var ret = 100.0 * value / criterion;
+            if (ret > this.gaugeLimit) {
+                ret = this.gaugeLimit;
+            }
+        }
+        return ret;
+    },
+
+    _calculateAttainmentGuage: function (score_indexes) {
+        return true;
+    },
+
+    _setAttainmentGuages: function () {
+
+        // There are 3 risk mitigation areas: automated test, defensive programming 
+        // and scoped programming. Each area has one or more score criteria.
+        // To hit 100% or more for an area, all criteria must be over 100%.
+        // If any criteria is below 100%, the attainment percentage for that 
+        // area will be the average of all the criteria below 100%, with
+        // the other criteria being limited to 100%.
+        // If all criteria are above 100%, the attainment percentage for that 
+        // area will be the average of all the criteria (you break though).
+        // A upper limit on achievement will be enforced however. Currently 200%.
+
+
+        // 
+        // Automated Regression Testing
+        //
+        this.state.resultsGR.testgauge = 33.3;
+
+        //
+        // Scoped Packaging
+        //
+        this.state.resultsGR.scopegauge = 99.94;
+
+        //
+        // Defensive Programming
+        //
+        this.state.resultsGR.defensegauge = 180.1;
+    },
+
     _determineResult: function () {
         this.Result = "Pass";
 
-        // Simple, results must all meet minimum thresholds
+        // The final validation result is simple, scores must all meet minimum thresholds.
+        // Anything doesn't make it, we fail. The attainment guages are a little more complicated
+        // however.
+        //
+
         if (this.CodelessTestRatio < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.codeless_test_ratio"))) {
             this.Result = "Fail";
             return;
@@ -626,7 +683,7 @@ Output.prototype = {
             return;
         }
         if (this.LowCommentPct < parseFloat(gs.getProperty("x_snc_dk_valid_res.criteria.min.defense.low.comment"))) {
-            this.Result = "Fail"; 
+            this.Result = "Fail";
             return;
         }
     },
@@ -669,7 +726,6 @@ Output.prototype = {
                 var url = "";
                 var i = 0; // index for save loops
                 var setSize = state.inspectableLists[set_name].length;
-				gs.info("Set size for " + set_name + " is " + setSize);
                 if (setSize <= stats.inspectionSampleSize) {
 
                     //
@@ -691,7 +747,6 @@ Output.prototype = {
                     // 
                     // Select what not save out
                     //
-
 
                     for (i = 0; i < setSize - stats.inspectionSampleSize; i++) {
                         genRandomSampleIndex(sampleIndexes, setSize);
@@ -749,7 +804,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>44</sys_mod_count>
+        <sys_mod_count>48</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -757,6 +812,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-02-10 17:58:01</sys_updated_on>
+        <sys_updated_on>2019-02-12 14:38:21</sys_updated_on>
     </sys_script_include>
 </record_update>
