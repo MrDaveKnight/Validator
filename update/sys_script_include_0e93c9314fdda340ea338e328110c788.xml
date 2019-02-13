@@ -15,7 +15,6 @@ Output.prototype = {
         this.state = state;
         this.gaugeLimit = 200.0;
 
-
         // Staging variables for output/persistence.
         // The datastore field labels match the labels assigned to each metric,
         // and printed out by gs.info below.
@@ -24,7 +23,7 @@ Output.prototype = {
         // create a temporary variable here that does, and we will set it before getting
         // to the DB dump
         this.Result = "Fail";
-		this.TableTestCoverage = 42.4; // FIXME
+        this.TableTestCoverage = 42.4; // FIXME
         this.StateTestCoverage = 23.6; // FIXME 
         this.FileCount = 0;
         this.MethodCount = 0;
@@ -570,9 +569,9 @@ Output.prototype = {
     },
 
     _calculateAttainment: function (value, criterion_property) {
-        var ret = 0.0;
+        var ret = -1.0; // Negative value indicates a disabled criterion, i.e. 0
         var criterion = parseFloat(gs.getProperty(criterion_property));
-        if (value > 0.0 && criterion > 0.0) {
+        if (criterion > 0.0) {
             var ret = 100.0 * value / criterion;
             if (ret > this.gaugeLimit) {
                 ret = this.gaugeLimit;
@@ -581,37 +580,107 @@ Output.prototype = {
         return ret;
     },
 
-    _calculateAttainmentGuage: function (score_indexes) {
-        return true;
+    _calculateAttainmentGuage: function (scoreCriteria) {
+        // criteria is an object (used as a hash table) 
+        // Key: score variable names 
+        // Value: score's minimum criteria sys_property 
+        // See comment _setAttainmentGuages for algorithm description 
+
+        var failingAttainmentTotal = 0.0;
+        var failingAttainmentCnt = 0.0;
+        var passingAttainmentTotal = 0.0;
+        var passingAttainmentCnt = 0.0;
+        for (var scoreName in scoreCriteria) {
+            var a = this._calculateAttainment(this[scoreName], scoreCriteria[scoreName]);
+
+            if (a < 0.0) {
+                // If a criterion is 0, it is disabled, and attainment returns -1
+                continue;
+            }
+
+            if (a < 100.0) {
+                failingAttainmentCnt++;
+                failingAttainmentTotal += a;
+            }
+            else {
+
+                passingAttainmentCnt++;
+                if (a > this.gaugeLimit) {
+                    a = this.gaugeLimit;
+                }
+                passingAttainmentTotal += a;
+            }
+        }
+
+        var gaugeValue = 0;
+        if (failingAttainmentCnt > 0) {
+            // Cap passing attainment at 100% (the guage must stay under 100%)
+            gaugeValue = (failingAttainmentTotal + 100.0 * passingAttainmentCnt) /
+                (passingAttainmentCnt + failingAttainmentCnt);
+
+        }
+        else if (passingAttainmentCnt > 0) {
+            gaugeValue = passingAttainmentTotal / passingAttainmentCnt;
+        }
+        return gaugeValue;
     },
 
     _setAttainmentGuages: function () {
 
-        // There are 3 risk mitigation areas: automated test, defensive programming 
-        // and scoped programming. Each area has one or more score criteria.
-        // To hit 100% or more for an area, all criteria must be over 100%.
-        // If any criteria is below 100%, the attainment percentage for that 
-        // area will be the average of all the criteria below 100%, with
-        // the other criteria being limited to 100%.
-        // If all criteria are above 100%, the attainment percentage for that 
-        // area will be the average of all the criteria (you break though).
-        // A upper limit on achievement will be enforced however. Currently 200%.
+        try {
+
+            // There are 3 risk mitigation areas: automated test, defensive programming 
+            // and scoped programming. Each area has one or more score criteria.
+            // To hit 100% or more for an area, all criteria must be over 100%.
+            // If any criteria is below 100%, the attainment percentage for that 
+            // area will be the average of all the criteria below 100%, with
+            // the other criteria being limited to 100%.
+            // If all criteria are above 100%, the attainment percentage for that 
+            // area will be the average of all the criteria (you break though).
+            // A upper limit on achievement will be enforced however. Currently 200%.
 
 
-        // 
-        // Automated Regression Testing
-        //
-        this.state.resultsGR.testgauge = 33.3;
+            // 
+            // Automated Regression Testing
+            //
+            var gaugeCriteria = {
+                CodelessTestRatio: "x_snc_dk_valid_res.criteria.min.codeless_test_ratio",
+                ScriptedTestRatio: "x_snc_dk_valid_res.criteria.min.scripted_test_ratio",
+                ScriptTestCoverage: "x_snc_dk_valid_res.criteria.min.script_test_coverage"
+            };
+            this.state.resultsGR.testgauge = this._calculateAttainmentGuage(gaugeCriteria);
 
-        //
-        // Scoped Packaging
-        //
-        this.state.resultsGR.scopegauge = 99.94;
+            //
+            // Scoped Packaging
+            //
+            gaugeCriteria = {
+                ScopedPackagingPct: "x_snc_dk_valid_res.criteria.min.scoped_package_pct"
+            };
+            this.state.resultsGR.scopegauge = this._calculateAttainmentGuage(gaugeCriteria);
 
-        //
-        // Defensive Programming
-        //
-        this.state.resultsGR.defensegauge = 180.1;
+            //
+            // Defensive Programming
+            //
+            gaugeCriteria = {
+                LibExceptionPct: "x_snc_dk_valid_res.criteria.min.defense.lib.exception",
+                LibLogPct: "x_snc_dk_valid_res.criteria.min.defense.lib.log",
+                LibDebugPct: "x_snc_dk_valid_res.criteria.min.defense.lib.debug",
+                LibCommentPct: "x_snc_dk_valid_res.criteria.min.defense.lib.comment",
+                ProExceptionPct: "x_snc_dk_valid_res.criteria.min.defense.pro.exception",
+                ProLogPct: "x_snc_dk_valid_res.criteria.min.defense.pro.log",
+                ProDebugPct: "x_snc_dk_valid_res.criteria.min.defense.pro.debug",
+                ProCommentPct: "x_snc_dk_valid_res.criteria.min.defense.pro.comment",
+                LowExceptionPct: "x_snc_dk_valid_res.criteria.min.defense.low.exception",
+                LowLogPct: "x_snc_dk_valid_res.criteria.min.defense.low.log",
+                LowDebugPct: "x_snc_dk_valid_res.criteria.min.defense.low.debug",
+                LowCommentPct: "x_snc_dk_valid_res.criteria.min.defense.low.comment"
+            };
+            this.state.resultsGR.defensegauge = this._calculateAttainmentGuage(gaugeCriteria);
+
+        }
+        catch (e) {
+            gs.error("Failure calculating attainment gauges: " + e);
+        }
     },
 
     _determineResult: function () {
@@ -804,7 +873,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>48</sys_mod_count>
+        <sys_mod_count>52</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -812,6 +881,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-02-12 14:38:21</sys_updated_on>
+        <sys_updated_on>2019-02-13 17:29:17</sys_updated_on>
     </sys_script_include>
 </record_update>

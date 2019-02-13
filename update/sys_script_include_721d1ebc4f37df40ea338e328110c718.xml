@@ -221,7 +221,10 @@ Main.prototype = {
                     ATFTestSteps: {},
                 },
                 classes: {},
-                methods: {}
+                methods: {},
+                tables: {}, // Tables added or modified
+                states: {}, // Modified sys_choice_sets (you get entire set on any choice update) 
+                stages: {}  // stage field 
             },
             processingPackages: false, // As opposed to scanning everything on the box
             query: "", // Package filter
@@ -247,7 +250,7 @@ Main.prototype = {
             //this.state.resultsGR.setWorkflow(false);
             this.state.resultsGR.update();
         }
-		gs.debug("Inspection flag is " + this.state.inspectableLists.active);
+        gs.debug("Inspection flag is " + this.state.inspectableLists.active);
 
         // TODO Do property lookup for this
         //    this.state.dumpTree = true;
@@ -786,11 +789,13 @@ Main.prototype = {
                 // associated with a wf_workflow_version application file:
                 //  - wf_workflow_version
                 //  - wf_workflow (this is sys_metadata)
+                //  - wf_stage
                 //  - wf_condition (one for workflow, and one for each activity)
                 //  - wf_activity
                 //  - sys_variable_value 
                 //  - wf_transition
                 //  - wf_estimated_runtime_config
+                //  - table (to which the workflow is associated)
                 //
                 // There are many sets of a wf_activity and its associated sys_variable_values.
                 // They are all in order. The values will follow the activity immediately. 
@@ -800,6 +805,9 @@ Main.prototype = {
                 // may be empty or defaulted to nothing but comments. Therefore, we have
                 // to scan all of the variables assocated with an activity as a 
                 // unit to determine if the activity is actually scripted.
+                //
+                // We also want to track all the stages so we can look for test
+                // coverage later
                 //
                 // Inspection processing
                 // -----------------------------------------
@@ -834,7 +842,28 @@ Main.prototype = {
 
                 var scope = payloadXML.getNodeText("/record_update/wf_workflow/sys_scope");
 
-                var currentNode = payloadXML.getFirstNode("/record_update/wf_activity/sys_id");
+                var tableName = payloadXML.getNodeText("/record_update/wf_workflow_version/table");
+
+                // Track the stages in this workflow
+                var currentNode = payloadXML.getFirstNode("/record_update/wf_stage");
+                while (currentNode) {
+                    var iter = currentNode.getChildNodeIterator();
+                    var child = 0;
+                    while (iter.hasNext()) {
+                        child = iter.next();
+                        if (child.getNodeName() == "value") {
+
+                            if (!this.targets.stages[tableName]) {
+                                this.targets.stages[tableName] = {};
+                            }
+                            this.targets.stages[tableName][child.getNodeValue()] = 0;
+
+                        }
+                    }
+                    currentNode = payloadXML.getNextNode(currentNode);
+                }
+
+                currentNode = payloadXML.getFirstNode("/record_update/wf_activity/sys_id");
                 while (currentNode) {
 
                     Inspector.examineWorkflowActivity(this.stats, this.state, currentNode.getNodeName(), scope);
@@ -995,7 +1024,7 @@ Main.prototype = {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>340</sys_mod_count>
+        <sys_mod_count>342</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
@@ -1003,6 +1032,6 @@ Main.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-12-18 03:07:04</sys_updated_on>
+        <sys_updated_on>2019-02-13 22:48:46</sys_updated_on>
     </sys_script_include>
 </record_update>
