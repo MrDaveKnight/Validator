@@ -14,7 +14,7 @@
 Standard Usage - Use "Run" modules in Validator application
 
 Scripted Usage
-__________________
+________________
 
 To scan an accelerator packaged in Update Sets
 
@@ -225,6 +225,13 @@ Main.prototype = {
                 tables: {}, // Tables added or modified
                 states: {}, // Modified sys_choice_sets (you get entire set on any choice update) 
                 stages: {}  // stage field 
+            },
+            visitLog: {
+                // Record of choice sets processed, to avoid duplicate processing
+                choiceSets: {},
+                // Record of application files processed, to avoid taking the time
+                // to go to disk for an installation check
+                appFiles: {}
             },
             processingPackages: false, // As opposed to scanning everything on the box
             query: "", // Package filter
@@ -466,6 +473,43 @@ Main.prototype = {
         this.state.status = "Complete";
     },
 
+    _scanCodelessTestCoverage: function (test_stepGR) {
+        // FIXME: not done yet
+
+        // ATF test steps take input variables. Because of that, we need to search
+        // for configuration records that reference each step. No other way 
+        // around it since we must associated different variables on a single
+        // test step.
+        // We are interested in variables that define the table being tested, 
+        // or the "condition" being testing on that table, since in the condition
+        // we can see fields and the choices they are compared against.
+
+        // Iterate over all of the test steps variables
+        var varGR = new GlideRecord("sys_variable_value");
+        varGR.addQuery("document", "sys_atf_step");
+        varGR.addQuery("document_key", test_stepGR.sys_id);
+        varGR.query();
+        while (varGR.next()) {
+            var tableName = 0;
+            if (varGR.variable.internal_type.toString() == "table_name") {
+                tableName = varGR.value.toString();
+
+                // Log the fact this table has been targeted with a test!
+
+
+            }
+            else if (varGR.variable.internal_type.toString() == "conditions") {
+
+            }
+        }
+
+        var atfInputVariableTypesGR = new GlideRecord("atf_input_variable");
+        atfInputVariableTypesGR.addActiveQuery();
+        atfInputVariableTypesGR.addEncodedQuery("internal_type=table_name");
+        atfInputVariableTypesGR.query();
+        while (atfInputVariableTypesGR.next()) {
+        }
+    },
 
     _scanTestCoverage: function () {
 
@@ -836,9 +880,25 @@ Main.prototype = {
                 var payloadXML = new XMLDocument2();
                 payloadXML.parseXML(payload);
 
-                // Active check
-                if (payloadXML.getNodeText("/record_update/wf_workflow_version/published") != true)
+                // 
+                // Installed and published check
+                // 
+                // Because workflow changes save unique versions, all updates will
+                // indicate a publish. We therefore must look for the actual workflow version
+                // file on disk to determine if it is the published version
+                // or not. Unfortunately, this doubles our disk hits. But we must
+                // do it to avoid counting the same workflow multiple times.
+                var versionSysId = payloadXML.getNodeText("/record_update/wf_workflow_version/sys_id");
+                var workflowVersion = new GlideRecord("wf_workflow_version");
+                workflowVersion.addQuery("sys_id", versionSysId);
+                workflowVersion.addQuery("published", true);
+                workflowVersion.query();
+                if (!workflowVersion.hasNext()) {
+
+                    // Either this workflow version doesn't exist, or it isn't published
+                    // anymore
                     continue;
+                }
 
                 var scope = payloadXML.getNodeText("/record_update/wf_workflow/sys_scope");
 
@@ -853,10 +913,10 @@ Main.prototype = {
                         child = iter.next();
                         if (child.getNodeName() == "value") {
 
-                            if (!this.targets.stages[tableName]) {
-                                this.targets.stages[tableName] = {};
+                            if (!this.state.targets.stages[tableName]) {
+                                this.state.targets.stages[tableName] = {};
                             }
-                            this.targets.stages[tableName][child.getNodeValue()] = 0;
+                            this.state.targets.stages[tableName][child.getNodeValue()] = 0;
 
                         }
                     }
@@ -1024,7 +1084,7 @@ Main.prototype = {
         <sys_created_on>2018-08-06 03:43:03</sys_created_on>
         <sys_customer_update>true</sys_customer_update>
         <sys_id>721d1ebc4f37df40ea338e328110c718</sys_id>
-        <sys_mod_count>342</sys_mod_count>
+        <sys_mod_count>344</sys_mod_count>
         <sys_name>Main</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy/>
@@ -1032,6 +1092,6 @@ Main.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_721d1ebc4f37df40ea338e328110c718</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-02-13 22:48:46</sys_updated_on>
+        <sys_updated_on>2019-03-15 14:50:54</sys_updated_on>
     </sys_script_include>
 </record_update>

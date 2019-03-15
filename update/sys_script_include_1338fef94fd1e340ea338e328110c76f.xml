@@ -216,57 +216,70 @@ Inspector.examinePayload = function (stats, state, payload) {
             }
         }
 
-        // Choice is a special case!
+
+
         if (class_name == "sys_choice") {
+            // Choice is a special case!
             // This isn't an app file, but it packaged with an app file - sys_choice_set
             // Change the class over to sys_choice_set
             class_name = "sys_choice_set";
 
+            //
+            // Duplicate Visit Check
+            // Abort if we have already checked these choices
+            // This logic is different than the other installation checks in the else 
+            //
+            var setId = payloadXML.getNodeText("/record_update/sys_choice/sys_choice_set/sys_id");
+            if (state.visitLog.choiceSets[setId]) {
+                return;
+            }
+            state.visitLog.choiceSets[setId] = true;
+
 
             // 
-            // Track the choice set for subsequent test coverage analysis
+            // Track the "state" choices for subsequent test coverage analysis.
+            // Because of how choices are managed in update sets, the only practical
+            // way to get the choices is go to the installed sys_choice records themselves
             // 
+
             var currentNode = payloadXML.getNode("/record_update/sys_choice");
             if ("state" == currentNode.getAttribute("field")) {
 
                 var targetTableName = currentNode.getAttribute("table");
+                if (!this.targets.states[targetTableName]) {
+                    this.targets.states[targetTableName] = {};
+                }
 
-                var currentNode = payloadXML.getFirstNode("/record_update/sys_choice/sys_choice");
-                while (currentNode) {
-                    var iter = currentNode.getChildNodeIterator();
-                    var child = 0;
-                    while (iter.hasNext()) {
-                        child = iter.next();
-                        if (child.getNodeName() == "value") {
-                            if (!this.targets.states[targetTableName]) {
-                                this.targets.states[targetTableName] = {};
-                            }
-                            this.targets.states[targetTableName][child.getNodeValue()] = 0;
-                            break;
-                        }
-                    }
-                    currentNode = payloadXML.getNextNode(currentNode);
+                var choicesGR = new GlideRecord("sys_choice");
+                choicesGR.addQuery("name", targetTableName);
+                choicesGR.addQuery("element", "state");
+                choicesGR.query();
+                while (choicesGR.next()) {
+                    // Initialize what will be the test coverage counter to 0
+                    this.targets.states[targetTableName][child.getNodeValue()] = 0;
                 }
             }
         }
 
-        var real_class_name = class_name; // In case we switch to the artificial class name, need this for XML lookups
+        // Because things aren't always consistent in the XML layout,
+        // or we may create an artificial class name (for global business rules)
+        // we have to adjust class names for certain application files 
+        // The "real_class_name" is what we parse in the update set payload XML
+        // We also need to declare the GlideRecord we are going to use to 
+        // determine what is installed now, before we make any "artificial" changes
+        var real_class_name = class_name;
+        var installedGR = new GlideRecord(class_name); // Will be used in a bit
 
-        // Artifical Class Name tracking
-        // Look for a global Business Rule. Needs to be treated like a Script Include
         if (class_name == "sys_script") {
+            // Artifical Class Name tracking
+            // Look for a global Business Rule. Needs to be treated like a Script Include
             if ("global" == payloadXML.getNodeText("/record_update/sys_script/collection")) {
                 class_name = "sys_script_global"; // This is a special class injected into the app file spider
             }
         }
 
-
         Inspector.initializeInventoryLog(stats, state, class_name);
 
-        // A parameter into the AST walk basically, since we count code in there
-        state.stats.inventoryIndex = class_name;
-
-        stats.inventory[class_name].count++;
 
         if ("Custom" == stats.inventory[class_name].type) {
             // This is an unknown file class 
@@ -302,6 +315,39 @@ Inspector.examinePayload = function (stats, state, payload) {
                 real_class_name = "sys_choice/sys_choice_set";
             }
 
+            // Installation Check!
+            // This will ensure that we are processing the update set that was 
+            // actually installed, and that we don't double count anything 
+            // 
+            // Note that we don't have to do this for the oddball, sys_choice
+            // 
+            // What actually is installed,in the event that multiple updates touch the same 
+            // application file, is actually quite complex (not just a simple "who came last" 
+            // thing), so we are just going to go to the source of truth: what is installed.
+            // If this update is installed, process. If not, skip it. 
+            if (class_name != "sys_choice_set") {
+                var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
+
+                if (state.visitLog.appFiles[sys_id]) {
+                    return;
+                }
+
+                var updated_on = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_updated_on");
+                installedGR.addQuery("sys_id", sys_id);
+                installedGR.addQuery("sys_updated_on", updated_on);
+                installedGR.query();
+                if (!installedGR.hasNext()) {
+                    return; // Abort, abort, abort ... this is not installed!
+                }
+
+                state.visitLog.appFiles[sys_id] = true;
+            }
+
+
+            stats.inventory[class_name].count++;
+            // A parameter into the AST walk basically, since we count code in there
+            state.stats.inventoryIndex = class_name;
+
             var scope = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_scope");
 
             if (!scope || scope == "global") {
@@ -312,19 +358,23 @@ Inspector.examinePayload = function (stats, state, payload) {
                 state.currentScope = scope;
             }
 
-            if (Spider.appFiles[class_name].has_active_field) {
-                // This is an "Active" record. Can be enabled or disabled.
+            // 
+            // I turned this "disabled" check off. Just because they disabled the code,
+            // doesn't mean they won't reenable it later. So we want to track 
+            // this. 
 
-                // If disabled, don't process it for scripts
-                if ("true" != payloadXML.getNodeText("/record_update/" + real_class_name + "/active"))
-                    return;
+            //if (Spider.appFiles[class_name].has_active_field) {
+            // This is an "Active" record. Can be enabled or disabled.
 
-            }
+            // If disabled, don't process its scripts
+            //if ("true" != payloadXML.getNodeText("/record_update/" + real_class_name + "/active"))
+            //    return;
+
+            //}
             // At this point we have the payload of an enabled "Active" record, or a "Passive" record,
             // which can't be disabled, so continue on ...
 
             var api_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/api_name");
-            var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
             Inspector.logTargets(state, class_name, sys_id, api_name);
 
             if (Spider.appFiles[class_name].has_script && class_name.indexOf("sys_atf") == -1) {
@@ -929,7 +979,7 @@ Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>42</sys_mod_count>
+        <sys_mod_count>43</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -937,6 +987,6 @@ Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-02-13 22:43:17</sys_updated_on>
+        <sys_updated_on>2019-03-15 14:29:19</sys_updated_on>
     </sys_script_include>
 </record_update>
