@@ -11,7 +11,7 @@
         <name>Validator</name>
         <private>false</private>
         <restrict_table_access>false</restrict_table_access>
-        <runtime_access_tracking>permissive</runtime_access_tracking>
+        <runtime_access_tracking/>
         <scope>x_snc_dk_validator</scope>
         <scoped_administration>false</scoped_administration>
         <short_description/>
@@ -23,9 +23,9 @@
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-08-06 03:41:25</sys_created_on>
         <sys_id>65ec1ebc4f37df40ea338e328110c714</sys_id>
-        <sys_mod_count>0</sys_mod_count>
+        <sys_mod_count>1</sys_mod_count>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2018-08-06 03:41:25</sys_updated_on>
+        <sys_updated_on>2019-03-15 15:06:40</sys_updated_on>
         <template/>
         <trackable>true</trackable>
         <user_role/>
