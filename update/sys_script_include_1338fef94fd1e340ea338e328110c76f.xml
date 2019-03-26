@@ -24,6 +24,8 @@ Inspector.prototype = {
     type: 'Inspector'
 };
 
+Inspector.InstanceName = gs.getProperty("instance_name");
+
 // Take inventory of an Application File descendent
 // 
 // Caller must ensure that 
@@ -195,7 +197,7 @@ Inspector.examineRecord = function (stats, state, gr, class_name, name_field, ap
 };
 
 
-Inspector.examinePayload = function (stats, state, payload) {
+Inspector.examinePayload = function (xml_name, target_name, stats, state, payload) {
     // Payload must be for an Application File or descendent
     // This will only be called if we are scanning packages (update sets or pluggins)
 
@@ -256,7 +258,7 @@ Inspector.examinePayload = function (stats, state, payload) {
                 choicesGR.query();
                 while (choicesGR.next()) {
                     // Initialize what will be the test coverage counter to 0
-                    this.targets.states[targetTableName][child.getNodeValue()] = 0;
+                    this.targets.states[targetTableName][choicesGR.value.toString()] = 0;
                 }
             }
         }
@@ -315,6 +317,8 @@ Inspector.examinePayload = function (stats, state, payload) {
                 real_class_name = "sys_choice/sys_choice_set";
             }
 
+            var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
+
             // Installation Check!
             // This will ensure that we are processing the update set that was 
             // actually installed, and that we don't double count anything 
@@ -326,7 +330,6 @@ Inspector.examinePayload = function (stats, state, payload) {
             // thing), so we are just going to go to the source of truth: what is installed.
             // If this update is installed, process. If not, skip it. 
             if (class_name != "sys_choice_set") {
-                var sys_id = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_id");
 
                 if (state.visitLog.appFiles[sys_id]) {
                     return;
@@ -377,6 +380,21 @@ Inspector.examinePayload = function (stats, state, payload) {
             var api_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/api_name");
             Inspector.logTargets(state, class_name, sys_id, api_name);
 
+            //
+            // OOTB update detector!
+            //
+            var thisIsChangeToOOTB = false;
+            var update_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_update_name");
+            if (Inspector.isOotbAppFile(update_name, state.currentScope)) {
+                thisIsChangeToOOTB = true;
+                stats.inventory[class_name].ootb_count++;
+				
+                var link = "<p><a href=\"https://" + Inspector.InstanceName + ".service-now.com/nav_to.do?uri=" +
+                    class_name + ".do?sys_id=" + sys_id +
+                    "\" target=\"_blank\">" + target_name + " [" + xml_name +
+                    "]</a></p>";
+                state.boxChangeLinks.push(link);
+            }
             if (Spider.appFiles[class_name].has_script && class_name.indexOf("sys_atf") == -1) {
                 // Remember to SKIP ATF stuff! We process that later.
                 // Don't want to add test LOC into total counts
@@ -502,13 +520,15 @@ Inspector.examinePayload = function (stats, state, payload) {
                         //
 
                         if (!state.script_sys_id) {
-                            ge.error("Script scanning did not initialized script_sys_id!");
+                            gs.error("Script scanning did not initialized script_sys_id!");
                         }
 
-                        var update_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_update_name");
-                        var package_node = payloadXML.getNode("/record_update/" + real_class_name + "/sys_package");
+                        //var update_name = payloadXML.getNodeText("/record_update/" + real_class_name + "/sys_update_name");
+                        //var package_node = payloadXML.getNode("/record_update/" + real_class_name + "/sys_package");
 
-                        var scope_name = state.currentScope;
+                        //var scope_name = state.currentScope;
+                        /*
+                        Not sure what I was doing here
                         if (scope_name == "global") {
                             var a = package_node.getAttribute("display_value");
                             if (!a) {
@@ -524,7 +544,8 @@ Inspector.examinePayload = function (stats, state, payload) {
                                 gs.error("Expected a non-global source attribute for " + real_class_name + "/sys_package");
                             }
                         }
-                        if (!Inspector.isCustomAppFile(update_name, scope_name)) {
+                        */
+                        if (thisIsChangeToOOTB) {
                             // This is an update to an OOTB file (since it is not custom)
                             state.inspectableLists.ootbScriptUpdates.push(state.script_sys_id);
                         }
@@ -862,6 +883,7 @@ Inspector.initializeInventoryLog = function (stats, state, class_name) {
             count: 0,
             scripted_count: 0,
             global_count: 0,
+            ootb_count: 0,
             type: "Config" // NoLowCode, ProCode, Test, Config or Custom
         }; // initialize the record counter
 
@@ -925,9 +947,9 @@ Inspector.logTargets = function (state, class_name, sys_id, api) {
 };
 
 
-Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
+Inspector.isOotbAppFile = function (sys_update_name, scope_name) {
     // 1st input parm is the sys_update_name field in a sys_metadata record
-    // 2nd input parm, scope_name, can be one of two things
+    // 2nd input parm, scope_name, which can be one of two things:
     // - for private scope, the sys_metadata.sys_scope.scope field.
     //   In an update record, it is also the "source" attribute in the sys_package field, which 
     //   has two attributes: display_value and source.  
@@ -936,7 +958,21 @@ Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
     //   In an update record, it is also the "display_value" attribute in the sys_package field
     //   which should be in the sys_upgrade_history.to_version field as "Applied Update Set: <name>"
     //   for an upgrade update.
-    // This logic derives from ScriptInclude UpdateVersionAPI
+    // We want to track what OOTB application files have changed down in this method since
+    // we have already gone through the trouble to find the version record that identifies
+    // the file as being OOTB. For performance, we will record a link to that version, which in turn
+    // has a link to it's Application File
+
+    // This customization identification logic derives from ScriptInclude UpdateVersionAPI
+    //
+    // Notes
+    // When an OOTB app file is untouched, there are no versions. When you touch it,
+    // either locally or through an update set commit, it gets two versions, the
+    // current update whose "Source Table" is "Update Set", and the source
+    // is the update set that records the change,
+    // and a previous update whose Source Table is "System Upgrade" (sys_upgrade_history),
+    // and the source is a particular upgrade (or initial install)
+    // A new custom app file won't have a System Upgrade in its history 
 
 
     if (sys_update_name.indexOf("sys_dictionary_z") == 0) {
@@ -950,36 +986,65 @@ Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
     versions.addQuery('name', sys_update_name);
     versions.query();
 
-    // If a file has 0 versions, then not a customer file.
-    if (versions.getRowCount() === 0)
+    // If a file has 0 versions, then normally it is out of the box. There is one 
+    // exception I've seen, where the update is in a private scope, and no versions
+    // were created. That said, if we are here, scanning updates!, it means that the update
+    // happened. If there are no versions, something is wrong. Probably means
+    // there was no "original", i.e. nothing out of the box.
+    // So, I'll leave all the logic in here, but in our case, if there are no versions, we
+    // will consider it something new (not and OOTB modification) 
+    if (versions.getRowCount() === 0) {
+
         return false;
 
-    // If there exists a named version of source sys_upgrade_history or sys_store_app, 
-    // then not a customer file, with noted GIT exception.
-    while (versions.next()) {
-        var source = versions.source_table.toString();
-        if (source === 'sys_upgrade_history' || source === 'sys_store_app') {
-            // If in an upgrade that is NOT the same as its scope, or a store app, this is OOTB.
-            // When an app is installed from GIT, the source is an upgrade with the same name as the scope
-            if (source === 'sys_upgrade_history') {
-                if (source != scope_name) {
-                    return false; // This is an OOTB app file
-                }
-                else {
-                    return true; // This was installed via GIT, which means its custom
-                }
-            }
+        // Found an anomally. A sys_index was inserted by a privated scoped update set,
+        // and no version record was created. Since the update was in the 
+        // accelerator and privatedly scoped, it is a customer update by definition.
+        // Check for private scope here
+        /*
+        if (scope_name == "global") {
+            return true;
         }
+        else {
+            return false;
+        }
+        */
     }
 
-    return true;
+    // Local Update
+    // Anything that is updated locally, or installed via update set, will get a 
+    // sys_update_set version record. Question is, was an older sys_upgrade_history record
+    // around (OOTB), or was this installed via repo/store, or GIT
+    // 
+    // Update Set change
+    // Again, if OOTB, a sys_upgrade_history record will be left behind
+    // If there exists a named version of source sys_upgrade_history or sys_store_app, 
+    // then not a customer file, with noted GIT exception.
+    //
+    // GIT Pulls
+    // Look like a sys_upgrade_history, only the name of the upgrade is the scope
+    while (versions.next()) {
+        var sourceTable = versions.source_table.toString();
+        if (sourceTable === 'sys_upgrade_history') {
+            // If in an upgrade that is NOT the same as its scope, this is OOTB.
+            // When an app is installed from GIT, the source is an upgrade with the same name as the scope
+            if (versions.source.to_version != scope_name) {
+                return true; // This is an OOTB app file
+            }
+        }
+        //else if (sourceTable === 'sys_store_app') {
+        //    return true; // This was installed via GIT, which means its custom
+        //}
+    }
+
+    return false;
 };]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>dave.knight</sys_created_by>
         <sys_created_on>2018-10-22 21:53:03</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>1338fef94fd1e340ea338e328110c76f</sys_id>
-        <sys_mod_count>43</sys_mod_count>
+        <sys_mod_count>55</sys_mod_count>
         <sys_name>Inspector</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -987,6 +1052,6 @@ Inspector.isCustomAppFile = function (sys_update_name, scope_name) {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_1338fef94fd1e340ea338e328110c76f</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-03-15 14:29:19</sys_updated_on>
+        <sys_updated_on>2019-03-24 19:40:16</sys_updated_on>
     </sys_script_include>
 </record_update>

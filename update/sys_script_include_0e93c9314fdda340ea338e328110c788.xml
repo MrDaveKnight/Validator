@@ -8,12 +8,14 @@
         <description/>
         <name>Output</name>
         <script><![CDATA[var Output = Class.create();
+Output.URI_PREFIX = "https://" + gs.getProperty("instance_name") + ".service-now.com/nav_to.do?uri=";
 Output.prototype = {
     initialize: function (stats, state) {
 
         this.stats = stats;
         this.state = state;
         this.gaugeLimit = 200.0;
+
 
         // Staging variables for output/persistence.
         // The datastore field labels match the labels assigned to each metric,
@@ -23,9 +25,10 @@ Output.prototype = {
         // create a temporary variable here that does, and we will set it before getting
         // to the DB dump
         this.Result = "Fail";
-        this.TableTestCoverage = 42.4; // FIXME
-        this.StateTestCoverage = 23.6; // FIXME 
+        this.TableTestCoverage = 0.0; // FIXME
+        this.StateTestCoverage = 0.0; // FIXME 
         this.FileCount = 0;
+        this.BoxFileCount = 0;
         this.MethodCount = 0;
         this.ScriptTestCoverage = 0.0;
         this.ScriptedTestRatio = 0.0;
@@ -134,6 +137,7 @@ Output.prototype = {
         for (var table_class_name in this.stats.inventory) {
 
             this.FileCount += this.stats.inventory[table_class_name].count;
+            this.BoxFileCount += this.stats.inventory[table_class_name].ootb_count;
 
             this._tallyPrimaryAppFiles(table_class_name);
 
@@ -415,6 +419,7 @@ Output.prototype = {
         for (tableName in this.stats.inventory) {
             allCountsOutput += "\"" + tableName + "\"\n";
             allCountsOutput += "\tCount: " + this.stats.inventory[tableName].count + "\n";
+            allCountsOutput += "\tBox Count: " + this.stats.inventory[tableName].ootb_count + "\n";
             allCountsOutput += "\tScripted Count: " +
                 this.stats.inventory[tableName].scripted_count + "\n";
             allCountsOutput += "\tGlobal Count: " +
@@ -433,10 +438,12 @@ Output.prototype = {
         this.state.resultsGR.progress = 100; // 100%
         this.state.resultsGR.status = this.state.status;
         if (this.state.processingPackages) {
+            this.state.resultsGR.modified_ootb_files = this.state.boxChangeLinks.toString();
             this.state.resultsGR.validation_result = this.Result;
             this._setAttainmentGuages();
         }
         this.state.resultsGR.checksum = this.stats.checksum >>> 0;
+
 
         // Random artifacts for inspection
         if (this.state.inspectableLists.active) {
@@ -779,15 +786,10 @@ Output.prototype = {
             function getItemURL(sys_id) {
                 var af = new GlideRecord("sys_metadata");
                 if (af.get(sys_id)) {
-
-                    var url = "https://" + gs.getProperty("instance_name") + ".service-now.com/nav_to.do?uri=" +
-                        af.sys_class_name.toString() +
-                        ".do?sys_id=" +
-                        sys_id;
-
+                    var url = Output.URI_PREFIX + af.sys_class_name.toString() + ".do?sys_id=" + sys_id;
                     return url;
                 }
-                return "";
+                return "Could not find record!";
 
             }
 
@@ -875,7 +877,7 @@ Output.prototype = {
         <sys_created_on>2018-10-22 13:19:48</sys_created_on>
         <sys_customer_update>false</sys_customer_update>
         <sys_id>0e93c9314fdda340ea338e328110c788</sys_id>
-        <sys_mod_count>56</sys_mod_count>
+        <sys_mod_count>62</sys_mod_count>
         <sys_name>Output</sys_name>
         <sys_package display_value="Validator" source="x_snc_dk_validator">65ec1ebc4f37df40ea338e328110c714</sys_package>
         <sys_policy>read</sys_policy>
@@ -883,6 +885,6 @@ Output.prototype = {
         <sys_scope display_value="Validator">65ec1ebc4f37df40ea338e328110c714</sys_scope>
         <sys_update_name>sys_script_include_0e93c9314fdda340ea338e328110c788</sys_update_name>
         <sys_updated_by>dave.knight</sys_updated_by>
-        <sys_updated_on>2019-03-16 23:29:21</sys_updated_on>
+        <sys_updated_on>2019-03-23 17:00:12</sys_updated_on>
     </sys_script_include>
 </record_update>
